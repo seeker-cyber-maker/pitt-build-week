@@ -8,4 +8,6 @@ build/
 .next/
 coverage/
 *.log
+__pycache__/
+*.py[cod]
 CONTROL/STATUS.local.json

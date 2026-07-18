@@ -41,9 +41,20 @@ For the AI/report lane also read:
 - Stay in the files owned by your lane in `CONTROL/WORKBOARD.md`.
 - Do not overwrite another contributor's changes. Re-read `git status` before editing.
 - Keep changes small and testable. Add a focused test alongside any behavior change.
-- Run `npm test` before handing off.
-- Update `HANDOFFS/<your-lane>.md` with what changed, verification, limits, and one next action.
-- Run `python3 scripts/collate_handoffs.py` after updating a handoff.
+
+## Operating Style: Human-In-The-Loop Baton Passes
+
+This lane is deliberately collaborative, not autonomous. Work one clearly bounded slice at a time, then hand it back to Patrick for direction.
+
+1. Read the assigned contract and identify the smallest implementation slice.
+2. Implement and test that slice only.
+3. Run `npm test`.
+4. Update `HANDOFFS/Patrick.md` with what changed, evidence, limits, and one concrete next choice.
+5. Run `python3 scripts/collate_handoffs.py` and stop.
+
+Do not independently expand into UI, maps, live providers, new data collection, architecture changes, or a second feature after reaching a passing milestone. Ask Patrick for the next baton when requirements are unclear or a decision affects driver workflow, data handling, or product scope.
+
+Prefer a short, honest handoff over a broad attempt to anticipate every future feature.
 
 ## Definition Of Done For This Sprint
 

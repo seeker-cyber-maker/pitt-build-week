@@ -67,6 +67,7 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 ## Limits Or Risks
 
 - API key has not been assigned. Build and test the deterministic fallback first.
+- Operating mode is human-in-the-loop: complete one small, verified slice, update this handoff, and wait for Patrick's next direction instead of expanding the lane independently.
 
 ## Next Small Action
 

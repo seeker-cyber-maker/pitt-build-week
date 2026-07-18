@@ -7,6 +7,8 @@
 - **Branch:** `harness/patrick-ai-report`.
 - **Owned paths:** `packages/ai/`, `tests/ai/`, `.env.example`, `HANDOFFS/Patrick.md`.
 - **Do not modify:** UI, scenario engine, integration files, repository settings, deployment, or shared scope documents.
+- **Operational steering:** Read `CONTROL/OPERATIONAL_DESIGN_INPUTS.md` before defining the provider/report contract. The report must remain reviewable, provenance-labeled, and usable when the provider is unavailable.
+- **Domain input:** Patrick is the primary practical input for future route/mapping requirements. Capture confirmed observations as explicit acceptance criteria; do not turn operational input into unverified live-routing claims.
 
 ## Adding Another Collaborator
 

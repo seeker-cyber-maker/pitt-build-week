@@ -14,6 +14,7 @@ While working:
 - Use fake/seeded data unless the assigned lane explicitly authorizes an integration.
 - Add a focused acceptance check. State clearly whether it ran.
 - Keep the app useful when an AI endpoint is absent or errors.
+- Read `CONTROL/OPERATIONAL_DESIGN_INPUTS.md` when work touches routing, mapping, driver workflow, stops, or reporting. Translate operational feedback into bounded requirements and tests; do not imply live integrations.
 
 Before handing off:
 

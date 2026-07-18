@@ -33,6 +33,11 @@ Deliver a credible, runnable Build Week demo before the deadline, with a small e
 | AI/report boundary | `packages/ai/`, `tests/ai/`, `.env.example` |
 | Submission | `SUBMISSION/`, `DEMO_SCENARIO.md`, `CODEX_BUILD_LOG.md` |
 
+## Domain Steering
+
+- `CONTROL/OPERATIONAL_DESIGN_INPUTS.md` is the shared source for operational feedback. Mapping/route-planning work follows Patrick's driver-workflow guidance; later small-fleet feedback informs report requirements only.
+- No operational input authorizes a live integration or expands the Build Week product boundary.
+
 ## Collation Protocol
 
 Before work stops, update `HANDOFFS/<harness>.md` from the template. The integrator runs:

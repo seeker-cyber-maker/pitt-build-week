@@ -19,7 +19,7 @@ Deliver a credible, runnable Build Week demo before the deadline, with a small e
 | next | Integration | Codex | Initial app shell, scope guard, final merge | Seeded flow runs locally and build evidence is captured |
 | ready | Scenario engine | OpenCode | Deterministic trip data, reserve-risk calculator, report payload schema | Unit cases cover safe, tight, and urgent reserve states |
 | ready | Product UI | AGY | Three-screen demo flow: trip, alert, review/report | Every visible control is wired to local state |
-| ready | AI boundary | Any approved harness | Provider adapter with a deterministic offline fallback | Live call works when configured; fallback shows provenance when not |
+| ready | AI/report boundary | Patrick / Claude | Provider adapter with a deterministic offline fallback | Live call works when configured; fallback shows provenance when not |
 | ready | Submission | Research / writer lane | Demo script, README, build log, submission checklist | 3-minute narration script matches current UI |
 | later | Integrations | None | Real traffic, maps, ELD/telematics, fuel feeds | Explicitly out of Build Week scope |
 
@@ -30,7 +30,7 @@ Deliver a credible, runnable Build Week demo before the deadline, with a small e
 | Integration | `app/`, `scripts/`, `CONTROL/`, top-level docs |
 | Scenario engine | `packages/scenario/`, `tests/scenario/` |
 | Product UI | `packages/web/` |
-| AI boundary | `packages/ai/`, `tests/ai/` |
+| AI/report boundary | `packages/ai/`, `tests/ai/`, `.env.example` |
 | Submission | `SUBMISSION/`, `DEMO_SCENARIO.md`, `CODEX_BUILD_LOG.md` |
 
 ## Collation Protocol

@@ -19,6 +19,10 @@ For the AI/report lane also read:
 - `CONTROL/fixtures/report-input.seeded-demo.v1.json`
 - `CONTROL/fixtures/report-output.fallback.v1.json`
 
+For routing, mapping, stops, or offline behavior also read:
+
+- `CONTROL/CONTRACTS/ROUTING_CONTRACT_V1.md`
+
 ## Non-Negotiable Demo Boundaries
 
 - Keep the demo local, deterministic, and review-first.
@@ -35,6 +39,14 @@ For the AI/report lane also read:
 - Preserve `driver_review_required: true`; confirmation is a separate explicit UI event.
 - The seeded fixture sets `outbound_provider_authorized: false`. It must produce a local fallback with no network request.
 - Redact by design: no legal identity, GPS traces, vehicle identifiers, credentials, manifests, or high-risk cargo instructions.
+
+## Patrick's Operational Role
+
+Patrick is the primary operational reviewer for routing workflow, GPS and mapping assumptions, stop selection, ETA expectations, offline behavior, and the driver interaction flow. Treat his observations as requirements to capture in a contract, acceptance case, or explicit open question.
+
+Do not turn an operational observation into a claim of live capability. Do not treat an assumption about roads, truck stops, vehicle restrictions, traffic, or regulation as a fact without a documented source or a clearly labeled seeded fixture.
+
+Escalate instead of guessing when routing behavior conflicts with real driving practice, a mapping assumption affects safety, a new data field is needed, a regulation is unclear, or report wording could change legal or operational meaning.
 
 ## Working Rules
 

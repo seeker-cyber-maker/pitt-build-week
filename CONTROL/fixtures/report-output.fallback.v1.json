@@ -1,0 +1,27 @@
+{
+  "schema_version": "pitt.report-draft.v1",
+  "status": "fallback_ready",
+  "provenance": {
+    "kind": "deterministic_fallback"
+  },
+  "deterministic_facts": {
+    "scenario_id": "PITT-DEMO-017",
+    "event_type": "delay_and_reserve_risk",
+    "delay_minutes": 28,
+    "projected_arrival_reserve_percent": 7,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": -5,
+    "recommended_stop": "Northbound Service Plaza",
+    "stop_distance_km": 19,
+    "stop_detour_minutes": 15
+  },
+  "narrative": "A seeded 28-minute delay changes projected fuel reserve to 7%, below the 12% policy floor. The supplied review option is Northbound Service Plaza, 19 km away with a planned 15-minute detour. Driver review is required before any external action.",
+  "review": {
+    "required": true,
+    "confirmed": false
+  },
+  "limitations": [
+    "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+    "This draft does not control a vehicle or issue a driving instruction."
+  ]
+}

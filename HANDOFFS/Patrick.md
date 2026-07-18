@@ -7,7 +7,9 @@
 
 ## Changed Or Investigated
 
-- Awaiting lane start.
+- Shared input/output contract is ready: `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`.
+- Seeded local input: `CONTROL/fixtures/report-input.seeded-demo.v1.json`.
+- Required deterministic fallback shape: `CONTROL/fixtures/report-output.fallback.v1.json`.
 
 ## Evidence
 
@@ -20,4 +22,4 @@
 
 ## Next Small Action
 
-- Implement a small provider-neutral report-drafting contract under `packages/ai/`.
+- Implement a small provider-neutral report-drafting contract under `packages/ai/`, beginning with the deterministic fallback. Preserve supplied facts exactly and make no provider call when `outbound_provider_authorized` is `false`.

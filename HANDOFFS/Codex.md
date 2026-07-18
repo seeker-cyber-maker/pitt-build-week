@@ -1,6 +1,6 @@
 # Harness Handoff: Codex
 
-- **Status:** in progress
+- **Status:** ready for integration
 - **Lane:** Integration
 - **Branch/worktree:** `main` during bootstrap only; future integration uses `harness/codex-integration`
 - **Started:** 2026-07-18
@@ -11,11 +11,13 @@
 - Added a dependency-free local demo shell under `app/` with a three-stage trip, recommendation, and report-review flow.
 - Added deterministic scenario functions in `app/scenario.js` and focused Node tests in `tests/scenario.test.mjs`.
 - Added `package.json` commands for local testing and serving.
+- Defined the shared report boundary in `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md` with bounded seeded input and deterministic fallback output fixtures.
+- Updated Patrick's lane prompt to require contract validation, exact preservation of deterministic facts, and zero provider calls for the local seeded fixture.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 3/3 scenario tests passed: urgent reserve calculation, scope-bounded recommendation, and provenance-bearing local fallback report.
+- **Result:** 5/5 tests passed: urgent reserve calculation, scope-bounded recommendation, provenance-bearing local fallback report, and report-contract input/output checks.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
 - **Result:** Trip watch -> driver acknowledgment -> report draft -> confirmation state all rendered and changed local state. Screenshot: `/tmp/pitt-demo-report.png`.
 
@@ -26,4 +28,5 @@
 
 ## Next Small Action
 
-- Merge this branch as the runnable baseline, then let scenario/UI/report owners replace their seams with their lane-owned packages while retaining the no-login local demo path.
+- Patrick implements `packages/ai/` against `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`, beginning with the local `fallback_ready` fixture. The seeded input has `outbound_provider_authorized: false`, so the first implementation must not call any provider.
+- Keep the current `app/` demo shell until each lane-owned package is integrated at a single seam; do not introduce a second competing flow.

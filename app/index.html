@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#081b1b" />
+    <title>PITT - Trip Exception Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">P</span><span>PITT</span></div>
+      <div class="demo-label">Demo scenario · local data only</div>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Trip Intelligence &amp; Transit Triage</p>
+        <h1 id="page-title">Keep the trip visible. Keep the driver in control.</h1>
+        <p class="lede">A refrigerated delivery is delayed. PITT turns a fuel-reserve risk into a reviewable plan and a report draft, without controlling the truck or using live fleet data.</p>
+      </section>
+
+      <nav class="progress" aria-label="Demo progress">
+        <button data-go-to="1" data-progress="1" type="button"><b>1</b><span>Trip watch</span></button>
+        <button data-go-to="2" data-progress="2" type="button"><b>2</b><span>Driver review</span></button>
+        <button data-go-to="3" data-progress="3" type="button"><b>3</b><span>Report draft</span></button>
+      </nav>
+
+      <section class="screen" data-step="1">
+        <div class="screen-heading"><div><p class="eyebrow">Seeded trip</p><h2>Refrigerated delivery is underway</h2></div><span class="status status-safe">Monitoring</span></div>
+        <div class="trip-grid">
+          <article class="panel trip-card"><span>Trip</span><strong id="trip-id"></strong><p><span id="cargo"></span> · <span id="driver"></span></p></article>
+          <article class="panel trip-card"><span>Destination</span><strong id="destination"></strong><p id="route"></p></article>
+          <article class="panel metric"><span>Fuel now</span><strong id="fuel-now"></strong><small>Seeded fuel state</small></article>
+          <article class="panel metric"><span>Reserve floor</span><strong id="reserve-floor"></strong><small>Policy threshold</small></article>
+          <article class="panel metric"><span>Delay</span><strong id="delay"></strong><small>Seeded exception</small></article>
+          <article class="panel metric"><span>Planned arrival</span><strong id="planned-arrival"></strong><small>Departed <span id="departure"></span></small></article>
+        </div>
+        <div class="action-row"><button class="button primary" id="begin-button" type="button">Review reserve risk <span>→</span></button></div>
+      </section>
+
+      <section class="screen" data-step="2" hidden>
+        <div class="screen-heading"><div><p class="eyebrow">Deterministic alert</p><h2>Projected reserve crosses the policy floor</h2></div><span class="status status-urgent">Review required</span></div>
+        <div class="alert-layout">
+          <article class="risk-card">
+            <p>Projected arrival reserve</p><strong id="projected-reserve"></strong><span id="reserve-gap"></span>
+            <div class="fuel-bar"><i></i></div>
+            <small>Calculated from seeded fuel, burn, delay, and reserve policy. Not a live route forecast.</small>
+          </article>
+          <article class="panel recommendation">
+            <p class="eyebrow">Recommended review action</p>
+            <h3 id="stop-name"></h3>
+            <p id="stop-detail"></p>
+            <p id="recommendation-summary"></p>
+            <ul>
+              <li>Seeded delay makes the current plan unsafe.</li>
+              <li>Pre-approved stop is the nearest demonstration option.</li>
+              <li>Driver or dispatch chooses the action.</li>
+            </ul>
+          </article>
+        </div>
+        <label class="review-check"><input id="review-toggle" type="checkbox" /> I reviewed the recommendation and want a report draft.</label>
+        <div class="action-row"><button class="button secondary" data-go-to="1" type="button">Back to trip</button><button class="button primary" id="review-button" type="button">Create report draft <span>→</span></button></div>
+      </section>
+
+      <section class="screen" data-step="3" hidden>
+        <div class="screen-heading"><div><p class="eyebrow">Reviewable output</p><h2>Trip exception report draft</h2></div><span class="status status-draft">Fallback draft</span></div>
+        <div class="report-layout">
+          <article class="panel report"><div class="report-meta"><span>Source</span><b>Deterministic local fallback</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
+          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact dispatch, change a route, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded for this local demo. No external action was taken.</p></aside>
+        </div>
+        <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
+      </section>
+    </main>
+    <footer>Prototype boundary: seeded local scenario · no GPS, mapping, telematics, pricing, or vehicle controls.</footer>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -13,6 +13,23 @@ This repository is organized for several harnesses working in parallel without m
 
 The integration lane is deliberately small. A contribution is not ready merely because it builds: it must have a stated acceptance check and captured result.
 
+## Run The Local Demo
+
+This branch contains a dependency-free local demo shell under `app/`. It uses only seeded data and can be opened without credentials or a provider key.
+
+```bash
+npm test
+npm run serve
+```
+
+Open `http://127.0.0.1:4173` and complete the visible path:
+
+1. Review the seeded trip.
+2. Acknowledge the deterministic reserve-risk recommendation.
+3. Review and confirm the locally generated report draft.
+
+The existing scenario, UI, and AI/report lanes can replace the corresponding local modules later. The demo must remain usable when no model endpoint is configured.
+
 ## Demo Boundary
 
 PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, or fuel-pricing data. It uses a clearly labeled local demo scenario and deterministic calculations. Model output is a reviewable draft, never an autonomous instruction.

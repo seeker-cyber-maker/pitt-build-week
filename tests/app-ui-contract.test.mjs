@@ -74,7 +74,7 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(app, /Predicted traffic/);
   assert.match(app, /trafficForecastBasis/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=live-fuel-simulation-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=predictive-traffic-20260719"/);
 });
 
 test("report includes a review-gated Lua machine handoff", async () => {

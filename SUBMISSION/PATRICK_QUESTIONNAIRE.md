@@ -140,6 +140,28 @@ Les compagnies ont des ententes de prix flotte négociées annuellement avec une
 
 ### Réponse de Patrick :
 
+**Alerte live (chauffeur au volant) :**
+
+Le chauffeur voit l'app en conduisant. **Bullet points, instantanés, actionnables.**
+
+```
+⚠️ Niveau fuel bas
+⏱️ Délai imprévu : 25 km
+🚧 Détour : A30
+⛽ Arrêt suggéré : Petro-Can A-40 Est
+         [ Accepter détour ]  [ Ignorer ]
+```
+
+**Règles pour l'alerte live :**
+- **B** — Ton direct, pas bureaucratique
+- **C** — Concis, 3-4 lignes max
+- **1 action par écran** — Accepter ou ignorer, c'est tout
+- **Pas de paragraphe** — le chauffeur n'a pas le temps de lire
+
+**Rapport employeur (dispatch / back-office) :**
+
+La narrative complète actuelle est bien — c'est le document qu'on transmet après coup.
+
 **BON (assistant) :**
 - "Recommandation : considérer un arrêt à..."
 - "Réserve projetée : X% — à vérifier"
@@ -151,6 +173,10 @@ Les compagnies ont des ententes de prix flotte négociées annuellement avec une
 - "Itinéraire modifié" (sans confirmation)
 
 **Le chauffeur est le décideur final.** Le rapport doit l'aider à expliquer sa décision, pas la prendre à sa place.
+
+**Recommandation :** Documenter deux templates dans le contrat :
+1. `alert_template` — bullets, mobile, au volant
+2. `report_template` — narrative, desktop, pour dispatch
 
 ---
 

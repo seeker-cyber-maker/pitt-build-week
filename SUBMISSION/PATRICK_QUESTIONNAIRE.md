@@ -55,12 +55,43 @@ Le format du rapport devrait être **programmable/configurable par le client** (
 
 ### Réponse de Patrick :
 
-| Champ | Pourquoi | Exemple |
-|-------|----------|---------|
-| **Temps de contact dispatch** | Preuve que le chauffeur a essayé de prévenir | "Dispatch contacté à 14h30, aucune réponse" |
-| **Code d'événement** | Catégoriser rapidement sans lire tout le texte | RETARD / RESERVE / PANNE / CONDITIONS |
+**Contexte réel du transport réfrigéré (reefer) :**
 
-**Hors scope :** Coordonnées GPS précises, identité du client, valeur de la cargaison.
+| Étape | Ce qui compte pour dispatch | Impact fuel/réserve |
+|-------|---------------------------|-------------------|
+| **Avant chargement** | Fueller camion + reefer (poids légal) | Consommation reefer incluse dans le calcul |
+| **Pré-chargement** | Température cible (-10°F vs 4°C) | -10°F coûte plus cher en fuel que 4°C |
+| **Inspection trailer** | Chute reefer intacte, sol nettoyé | — |
+| **Chargement** | Photo arrimage + scellés, photo remorque vide | — |
+| **En route** | Heure démarrage moteur reefer, heure fuel | Burn rate réel vs estimé |
+| **Arrivée client** | Heure RV prévue vs réelle, attente imprévue | Délai non prévu = réserve réduite |
+| **Attente alimentaire** | Douane, DOT, food inspection, shipper, consignee | Très longue ; le transporteur veut qualifier ce temps lui-même par client |
+
+**Insight clé :**
+
+> "Le transporteur pourrait vouloir qualifier le temps d'attente à calculer lui-même pour les clients réguliers."
+
+Les compagnies ont des ententes de prix flotte négociées annuellement avec une pétrolière spécifique. Le système devrait connaître ces détails pour configurer les arrêts suggérés.
+
+**Champs suggérés pour `pitt.report-draft.v1` :**
+
+| Champ | Pourquoi | Source |
+|-------|----------|--------|
+| `reefer_start_time` | Heure de démarrage du moteur reefer | Saisie chauffeur ou ELD |
+| `fuel_fill_time` | Heure du dernier plein | Saisie chauffeur |
+| `target_temperature` | Température cible de la cargaison | Ordre de transport |
+| `scheduled_appointment` | Heure de rendez-vous prévue | Ordre de transport |
+| `actual_arrival` | Heure d'arrivée réelle | GPS ou saisie |
+| `unplanned_delay` | Délai imprévu chez le client | Calculé : actual - scheduled |
+| `carrier_fuel_partner` | Partenaire pétrolier flotte | Config transporteur |
+| `driver_comments` | Notes de l'inspection, état trailer, anomalies | Texte libre chauffeur |
+
+**Photos suggérées (hors scope Build Week, mais utile pour produit réel) :**
+- Remorque vide avant chargement
+- Chargement avec arrimage en place
+- Scellés apposés
+
+**Hors scope Build Week :** Photos, ELD live, intégration pétrolière, poids légal. À documenter comme future roadmap.
 
 ---
 

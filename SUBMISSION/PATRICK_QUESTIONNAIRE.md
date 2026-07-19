@@ -184,13 +184,24 @@ La narrative complète actuelle est bien — c'est le document qu'on transmet ap
 
 > Basé sur l'image jointe (non analysée — voir note ci-dessus), quels champs d'un vrai rapport d'incident manquent dans PITT ?
 
-### À compléter :
+### Réponse de Patrick :
 
-Dès que l'image sera lisible, comparer les champs du formulaire réel avec :
-- `pitt.report-input.v1`
-- `pitt.report-draft.v1`
+**L'image envoyée était connexe au camionnage mais sans lien direct avec le fuel/reefer.** Ce n'était pas un formulaire de rapport d'incident. Aucune comparaison pertinente à faire avec `pitt.report-draft.v1`.
 
-Identifier les écarts et proposer des ajouts pertinents sans rendre le rapport lourd.
+**Le questionnaire opérationnel couvre déjà l'essentiel :**
+- Q1 : distinction alerte live vs rapport employeur ✓
+- Q2 : champs reefer et workflow réel ✓
+- Q3 : fiabilité des données (observed/estimated) ✓
+- Q4 : ton et templates (alerte vs rapport) ✓
+
+**Pour un produit réel**, un rapport d'incident complet inclurait aussi :
+- Photos (remorque, arrimage, scellés, dommages)
+- Témoins
+- Déclarations des parties
+- Numéros de police/constat
+- Assurance
+
+Mais ces éléments sont **hors scope PITT** — le produit se concentre sur les exceptions opérationnelles (fuel, délai, arrêt), pas les accidents matériels ou les litiges.
 
 ---
 

@@ -73,6 +73,48 @@ The seeded input fixture (`CONTROL/fixtures/report-input.seeded-demo.v1.json`) p
 - Integration lane (Codex) reviews PR #2 and confirms contract alignment before merge.
 - After merge, scenario engine and UI lanes wire `generate_report()` into the end-to-end flow.
 
+## TODO List for Integration Lane (Reviewer)
+
+### Before Merge
+- [ ] Checkout branch: `git fetch origin && git checkout harness/patrick-ai-report`
+- [ ] Run tests: `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` (expect 21/21 OK)
+- [ ] Verify fixture alignment:
+  ```bash
+  PYTHONPATH=/opt/data/workspace/pitt-build-week python3 -c "
+  from packages.ai import generate_report
+  from packages.ai.models import ScenarioPayload
+  import json
+  with open('CONTROL/fixtures/report-input.seeded-demo.v1.json') as f:
+      d = json.load(f)
+  r = generate_report(ScenarioPayload.from_dict(d))
+  print(json.dumps(r.to_dict(), indent=2))
+  "
+  ```
+  Output must match `CONTROL/fixtures/report-output.fallback.v1.json` exactly.
+- [ ] Confirm no files modified outside `packages/ai/`, `tests/ai/`, `HANDOFFS/Patrick.md`, `WORKLOG.md`
+- [ ] Confirm no secrets in code, tests, or logs
+- [ ] Review answers to integration questions (above)
+
+### After Merge to `main`
+- [ ] Wire `packages/ai/` into `app/` demo shell (replace or extract the local report generation in `app/scenario.js`)
+- [ ] Ensure single seam: do not keep a second competing report flow
+- [ ] Scenario engine lane: confirm `pitt.report-input.v1` output matches `ScenarioPayload.from_dict()` expectations
+- [ ] UI lane: wire report display to consume `ReportResult.to_dict()` output
+- [ ] Add `.env` with real AI credentials if testing the AI-assisted path (optional for demo)
+- [ ] Run full E2E: trip → alert → report draft → driver review → confirm
+
+### Known Integration Points
+| Component | What I Provide | What I Expect |
+|---|---|---|
+| Scenario Engine | `ScenarioPayload.from_dict(input_dict)` | `pitt.report-input.v1` dict with all required fields |
+| UI | `ReportResult.to_dict()` | Consumer reads `status`, `provenance.kind`, `narrative`, `review.required`, `deterministic_facts` |
+| Integration | `generate_report(scenario)` callable | Python module importable from `packages.ai` |
+
+### Blockers / Needs Decision
+1. **Schema v2?** If Codex updates `REPORT_DRAFT_V1.md`, this module needs a matching update.
+2. **Provider for demo?** No provider needed for seeded demo (fallback works). If adding AI-assisted demo, need `.env` + `outbound_provider_authorized: true`.
+3. **Python path wiring?** `packages/` is not a proper Python package yet. Integration may need `PYTHONPATH` or a `setup.py` adjustment.
+
 ## Branch Status
 
 - All code committed to `harness/patrick-ai-report`

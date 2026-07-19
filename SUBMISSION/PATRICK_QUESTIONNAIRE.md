@@ -101,13 +101,36 @@ Les compagnies ont des ententes de prix flotte négociées annuellement avec une
 
 ### Réponse de Patrick :
 
-`provenance` + `limitations` **suffisent pour le Build Week**, mais pour un produit réel il faudrait un champ `data_quality` visible :
+**Dans la vraie vie, le chauffeur n'a pas toujours de jauge numérique.**
 
-| Valeur | Signification pour dispatch |
-|--------|----------------------------|
-| `observed` | Le chauffeur a constaté lui-même |
-| `seeded` | Donnée du scénario démo (pas pour production) |
-| `unknown` | Information manquante — ne pas décider dessus |
+| Type de mesure | Comment ça se passe sur la route | Fiabilité |
+|----------------|-----------------------------------|-----------|
+| **Camion (tractor)** | Jauge au tableau de bord | Précis |
+| **Reefer (remorque)** | Souvent **pas de jauge** | Estimée |
+| | Frapper le réservoir avec le manche du marteau, écouter le son | Approximatif |
+| | Calculer par expérience : taille du réservoir × temps écoulé | Heuristique |
+| | Inspection visuelle (anti-cifonnement sur la tank) | Confirme présence/absence |
+
+**Ce que les compagnies recommandent réellement :**
+- Arrêt tous les **4 heures ou moins** pour vérifier :
+  - Pneus (pression, usure, clous)
+  - Fuel du reefer (niveau estimé)
+  - État général de l'équipement
+
+**Distinction nécessaire dans le rapport :**
+
+| Valeur | Signification | Quand l'utiliser |
+|--------|---------------|------------------|
+| `observed` | Jauge numérique, capteur ELD, compteur précis | Camion, température reefer |
+| `estimated` | Expérience chauffeur, heuristique temps/écoulé | Fuel reefer sans jauge |
+| `seeded` | Donnée du scénario démo | Build Week uniquement |
+| `unknown` | Info manquante, pas vérifiée | À éviter, mais honnête |
+
+**Recommandation :**
+- Oui, un champ `data_quality` visible est nécessaire pour un produit réel.
+- Ajouter la valeur `estimated` — c'est la réalité du métier.
+- Dispatch doit savoir si le fuel reefer est mesuré (`observed`) ou estimé (`estimated`) pour évaluer la marge d'erreur.
+- Exemple d'affichage : *"Fuel reefer : 45% (estimated) — basé sur temps écoulé depuis dernier plein"*
 
 ---
 

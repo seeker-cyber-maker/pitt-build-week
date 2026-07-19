@@ -3,7 +3,6 @@ name: Deploy PITT Demo to GitHub Pages
 on:
   push:
     branches:
-      - harness/codex-integration
       - main
   workflow_dispatch:
 

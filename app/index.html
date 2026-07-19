@@ -24,6 +24,11 @@
           <div><p class="eyebrow">Simulated planning ledger</p><h2 id="planning-title">Sort the work before the road gets expensive</h2></div>
           <span class="status status-safe">Local map simulation</span>
         </div>
+        <div class="display-controls" aria-label="Simulation display settings">
+          <div class="display-control"><span>Distance &amp; volume</span><div class="map-switch" role="group" aria-label="Distance and volume units"><button class="map-mode is-selected" data-display-unit="metric" type="button">Metric</button><button class="map-mode" data-display-unit="imperial" type="button">Imperial</button></div></div>
+          <div class="display-control"><span>Seeded local money</span><div class="map-switch" role="group" aria-label="Seeded local money label"><button class="map-mode is-selected" data-display-currency="CAD" type="button">CAD</button><button class="map-mode" data-display-currency="USD" type="button">USD</button></div></div>
+          <p id="display-basis">Local demo values only. Currency mode changes the display label, not a live exchange rate.</p>
+        </div>
         <p class="planning-intro">A local delivery list is ranked by its stated time window. Seeded fuel math weighs reachable simulated fuel prices against detour cost before the policy floor would be crossed. The map is a made-up corridor for this demo, not live navigation.</p>
         <div class="planning-summary" id="planning-summary"></div>
         <div class="planning-layout">

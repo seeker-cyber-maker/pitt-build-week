@@ -21,6 +21,7 @@
 - Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
 - Made refuel selection price-aware using only seeded CAD-per-litre values plus a simulated detour-cost rule. The UI makes the cheaper-per-litre-but-longer alternative explicit without implying a live fuel-price feed.
 - Added a driver-controlled seeded day playback: five delivery legs, a noon price spike, a 3 PM price drop, explicit keep-or-recalculate choices, and a final delivery-outcome summary. The price events modify only the local planning preview and retain the no-live-data boundary.
+- Added display-only metric/imperial and CAD/USD local-money controls. Distances and fuel volumes convert between physical units; currency values keep their seeded local numeric value and only change label, with an explicit no-exchange-rate disclosure.
 
 ## Evidence
 

@@ -15,7 +15,9 @@ const state = {
   mapMode: "recommended",
   rebuildCount: 0,
   dayIndex: -1,
-  eventChoices: {}
+  eventChoices: {},
+  displayUnit: "metric",
+  displayCurrency: "CAD"
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -53,6 +55,8 @@ function render() {
   renderMap();
   renderDayPlayback();
   renderDeliveryReportSummary();
+  renderDisplayControls();
+  renderTripDetails();
 }
 
 function goTo(step) {
@@ -75,20 +79,51 @@ document.querySelector("#delay").textContent = formatMinutes(trip.delayMinutes);
 document.querySelector("#projected-reserve").textContent = `${risk.projectedReservePercent}%`;
 document.querySelector("#reserve-gap").textContent = `${Math.abs(risk.reserveGapPercent)}% below policy floor (gap: ${risk.reserveGapPercent}%)`;
 document.querySelector("#stop-name").textContent = trip.stop.name;
-document.querySelector("#stop-detail").textContent = `${trip.stop.distanceKm} km away · ${trip.stop.detourMinutes}-minute detour`;
 document.querySelector("#recommendation-summary").textContent = recommendation.summary;
-document.querySelector("#report-draft").textContent = createFallbackReport(trip, risk, recommendation);
 
 function formatPercent(value) {
   return `${Math.round(value)}%`;
 }
 
-function formatKm(value) {
+function formatDistance(value) {
+  if (state.displayUnit === "imperial") return `${(value / 1.609344).toFixed(1)} simulated mi`;
   return `${value.toFixed(1)} simulated km`;
 }
 
-function formatCad(value) {
-  return `$${value.toFixed(2)} CAD`;
+function formatFuelVolume(value) {
+  if (state.displayUnit === "imperial") return `${(value / 3.78541).toFixed(1)} US gal`;
+  return `${value.toFixed(1)} L`;
+}
+
+function formatMoney(value) {
+  return `$${value.toFixed(2)} ${state.displayCurrency}`;
+}
+
+function formatFuelPrice(value) {
+  if (state.displayUnit === "imperial") return `$${(value * 3.78541).toFixed(3)}/US gal ${state.displayCurrency}`;
+  return `$${value.toFixed(3)}/L ${state.displayCurrency}`;
+}
+
+function renderDisplayControls() {
+  document.querySelectorAll("[data-display-unit]").forEach((button) => {
+    const selected = button.dataset.displayUnit === state.displayUnit;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  document.querySelectorAll("[data-display-currency]").forEach((button) => {
+    const selected = button.dataset.displayCurrency === state.displayCurrency;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  document.querySelector("#display-basis").textContent = state.displayUnit === "imperial"
+    ? `Distance and volume are shown in imperial units. ${state.displayCurrency} is a seeded local-money label; no exchange rate is applied.`
+    : `Distance and volume are shown in metric units. ${state.displayCurrency} is a seeded local-money label; no exchange rate is applied.`;
+}
+
+function renderTripDetails() {
+  document.querySelector("#stop-detail").textContent = `${formatDistance(trip.stop.distanceKm)} away · ${trip.stop.detourMinutes}-minute detour`;
+  document.querySelector("#report-draft").textContent = createFallbackReport(trip, risk, recommendation)
+    .replace(`${trip.stop.distanceKm} km`, state.displayUnit === "imperial" ? `${(trip.stop.distanceKm / 1.609344).toFixed(1)} mi` : `${trip.stop.distanceKm} km`);
 }
 
 function routePoints(plan) {
@@ -103,9 +138,9 @@ function renderPlanning() {
   const lowerPriceAlternative = recommended.refuel.alternatives.find(({ station }) => station.pricePerLitreCad < recommended.refuel.at.pricePerLitreCad);
   document.querySelector("#planning-summary").innerHTML = [
     ["Priority order", recommended.deliveries.map((delivery) => deliveryWindowLabels[delivery.window]).join(" → ")],
-    ["Planned refuel", `${recommended.refuel.at.name} at $${recommended.refuel.at.pricePerLitreCad.toFixed(3)}/L · ${formatCad(recommended.refuel.estimatedPlanCostCad)} total`],
+    ["Planned refuel", `${recommended.refuel.at.name} at ${formatFuelPrice(recommended.refuel.at.pricePerLitreCad)} · ${formatMoney(recommended.refuel.estimatedPlanCostCad)} total · ${formatFuelVolume(recommended.refuel.refillLitres)}`],
     ["Price tradeoff", lowerPriceAlternative ? `${lowerPriceAlternative.station.name} is cheaper per litre, but its simulated detour costs more.` : `Selected from reachable simulated stations before ${nextDelivery?.name ?? "the next delivery"}.`],
-    ["Loop avoided", `${distanceSavedKm.toFixed(1)} simulated km and ${Math.round(fuelReserveImprovementPercent)} percentage points more ending reserve`]
+    ["Loop avoided", `${formatDistance(distanceSavedKm)} and ${Math.round(fuelReserveImprovementPercent)} percentage points more ending reserve`]
   ].map(([label, value]) => `<div class="planning-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
   document.querySelector("#delivery-list").innerHTML = recommended.deliveries.map((delivery, index) => `
@@ -134,7 +169,7 @@ function renderDayPlayback() {
     const current = index === state.dayIndex;
     const detail = item.kind === "event"
       ? item.description
-      : `${formatKm(item.distanceKm)} · ${deliveryStatusLabels[item.delivery.status]} · ${item.delivery.proof}`;
+      : `${formatDistance(item.distanceKm)} · ${deliveryStatusLabels[item.delivery.status]} · ${item.delivery.proof}`;
     return `<div class="day-row ${complete ? "is-complete" : ""} ${current ? "is-current" : ""}">
       <time>${item.time}</time><div><strong>${item.title}</strong><small>${detail}</small></div>
     </div>`;
@@ -153,12 +188,12 @@ function renderDayPlayback() {
     document.querySelector("#day-current-title").textContent = currentItem.title;
     document.querySelector("#day-current-detail").textContent = currentItem.description;
     document.querySelector("#impact-analysis").textContent = routeWouldChange
-      ? `Impact analysis: recalculating moves the planned refuel from ${currentStation.name} to ${recalculatedStation.name}, changing the simulated refill-and-detour cost from ${formatCad(planning.recommended.refuel.estimatedPlanCostCad)} to ${formatCad(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`
-      : `Impact analysis: recalculation keeps ${recalculatedStation.name} as the lowest simulated refill-and-detour cost at ${formatCad(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`;
+      ? `Impact analysis: recalculating moves the planned refuel from ${currentStation.name} to ${recalculatedStation.name}, changing the simulated refill-and-detour cost from ${formatMoney(planning.recommended.refuel.estimatedPlanCostCad)} to ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`
+      : `Impact analysis: recalculation keeps ${recalculatedStation.name} as the lowest simulated refill-and-detour cost at ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`;
   } else {
     document.querySelector("#day-current-time").textContent = currentItem.time;
     document.querySelector("#day-current-title").textContent = currentItem.title;
-    document.querySelector("#day-current-detail").textContent = `${formatKm(currentItem.distanceKm)} completed. Delivery status: ${deliveryStatusLabels[currentItem.delivery.status]}. ${currentItem.delivery.proof}.`;
+    document.querySelector("#day-current-detail").textContent = `${formatDistance(currentItem.distanceKm)} completed. Delivery status: ${deliveryStatusLabels[currentItem.delivery.status]}. ${currentItem.delivery.proof}.`;
   }
 
   choice.hidden = !hasUnresolvedEvent;
@@ -189,7 +224,7 @@ function renderDeliveryReportSummary() {
   }
 
   const rows = summary.completedLegs.map((leg) => `<li><strong>${leg.title}</strong><br>${deliveryStatusLabels[leg.delivery.status]} · ${leg.delivery.proof}</li>`).join("");
-  destination.innerHTML = `<strong>Delivery outcomes</strong><br>${summary.completedLegs.length} of 5 simulated delivery legs · ${formatKm(summary.completedDistanceKm)}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
+  destination.innerHTML = `<strong>Delivery outcomes</strong><br>${summary.completedLegs.length} of 5 simulated delivery legs · ${formatDistance(summary.completedDistanceKm)}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
 }
 
 function renderMap() {
@@ -200,8 +235,8 @@ function renderMap() {
   const polyline = (points) => points.map((point) => `${point.x},${point.y}`).join(" ");
   const allNodes = [planning.input.origin, ...planning.input.deliveries, ...planning.input.stations];
   const activeDescription = state.mapMode === "recommended"
-    ? `${formatKm(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for $${activePlan.refuel.at.pricePerLitreCad.toFixed(3)}/L; ${formatCad(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
-    : `${formatKm(activePlan.distanceKm)}. No planned refuel; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
+    ? `${formatDistance(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for ${formatFuelPrice(activePlan.refuel.at.pricePerLitreCad)}; ${formatMoney(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
+    : `${formatDistance(activePlan.distanceKm)}. No planned refuel; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
 
   document.querySelector("#map-canvas").innerHTML = `
     <svg viewBox="0 0 860 500" role="img" aria-label="${activePlan.label}: ${activeDescription}">
@@ -251,6 +286,20 @@ document.querySelector("#confirm-button").addEventListener("click", () => {
 document.querySelectorAll("[data-map-mode]").forEach((button) => {
   button.addEventListener("click", () => {
     state.mapMode = button.dataset.mapMode;
+    render();
+  });
+});
+document.querySelectorAll("[data-display-unit]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.displayUnit = button.dataset.displayUnit;
+    renderPlanning();
+    render();
+  });
+});
+document.querySelectorAll("[data-display-currency]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.displayCurrency = button.dataset.displayCurrency;
+    renderPlanning();
     render();
   });
 });

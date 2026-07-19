@@ -58,3 +58,18 @@ test("seeded day playback exposes two explicit driver choices and a delivery rep
   assert.match(app, /evaluatePriceEvent/);
   assert.match(app, /summarizeDeliveryProgress/);
 });
+
+test("display toggles keep currency local and only convert units", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /data-display-unit="metric"/);
+  assert.match(markup, /data-display-unit="imperial"/);
+  assert.match(markup, /data-display-currency="CAD"/);
+  assert.match(markup, /data-display-currency="USD"/);
+  assert.match(markup, /exchange rate/i);
+  assert.match(app, /formatFuelPrice/);
+  assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
+});

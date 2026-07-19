@@ -35,4 +35,6 @@ The existing scenario, UI, and AI/report lanes can replace the corresponding loc
 
 PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates, local deterministic calculations, and seeded fuel prices balanced against simulated detour cost. Model output is a reviewable draft, never an autonomous instruction.
 
+The display can switch between metric and imperial physical units. It can also label the seeded local-money scenario as CAD or USD; this is not a currency-conversion feature and does not use an exchange-rate feed.
+
 See `CONTROL/PRODUCT_SCOPE.md` for the exact demo contract and `CONTROL/WORKBOARD.md` for the current queue.

@@ -1,6 +1,7 @@
 import { calculateRisk, createFallbackReport, createRecommendation, demoTrip } from "./scenario.js";
 import { createPlanningComparison, deliveryWindowLabels } from "./planner.js";
 import { deliveryStatusLabels, evaluatePriceEvent, simulatedDayTimeline, summarizeDeliveryProgress } from "./day-playback.js";
+import { createFuelSimulation, fuelStatusLabels } from "./fuel-simulation.js";
 
 const trip = demoTrip;
 const risk = calculateRisk(trip);
@@ -19,7 +20,8 @@ const state = {
   displayUnit: "metric",
   displayCurrency: "CAD",
   routeClosed: false,
-  routeCloseReason: null
+  routeCloseReason: null,
+  fuelDecision: null
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -77,7 +79,6 @@ document.querySelector("#destination").textContent = trip.destination;
 document.querySelector("#route").textContent = trip.plannedCorridor;
 document.querySelector("#departure").textContent = trip.departure;
 document.querySelector("#planned-arrival").textContent = trip.plannedArrival;
-document.querySelector("#fuel-now").textContent = `${trip.fuelPercent}%`;
 document.querySelector("#reserve-floor").textContent = `${trip.minimumReservePercent}%`;
 document.querySelector("#delay").textContent = formatMinutes(trip.delayMinutes);
 document.querySelector("#projected-reserve").textContent = `${risk.projectedReservePercent}%`;
@@ -125,9 +126,38 @@ function renderDisplayControls() {
 }
 
 function renderTripDetails() {
+  const fuel = currentFuelSimulation();
+  document.querySelector("#fuel-now").textContent = `${fuel.currentFuelPercent.toFixed(1)}%`;
   document.querySelector("#stop-detail").textContent = `${formatDistance(trip.stop.distanceKm)} away · ${trip.stop.detourMinutes}-minute detour`;
   document.querySelector("#report-draft").textContent = createFallbackReport(trip, risk, recommendation)
     .replace(`${trip.stop.distanceKm} km`, state.displayUnit === "imperial" ? `${(trip.stop.distanceKm / 1.609344).toFixed(1)} mi` : `${trip.stop.distanceKm} km`);
+}
+
+function currentFuelSimulation() {
+  return createFuelSimulation({
+    completedLegs: summarizeDeliveryProgress(state.dayIndex).completedLegs.length,
+    fuelDecision: state.fuelDecision,
+    plan: planning.recommended
+  });
+}
+
+function renderFuelRuntime() {
+  const fuel = currentFuelSimulation();
+  const value = document.querySelector("#fuel-runtime-value");
+  const detail = document.querySelector("#fuel-runtime-detail");
+  const status = document.querySelector("#fuel-runtime-status");
+  value.textContent = fuel.outOfFuel
+    ? `0.0% (${Math.abs(fuel.rawFuelPercent).toFixed(1)}% short)`
+    : `${fuel.currentFuelPercent.toFixed(1)}%`;
+  detail.textContent = fuel.refuelOccurred
+    ? `${fuel.operations.map((operation) => `${operation.label}: ${Math.max(0, operation.fuelAfterPercent).toFixed(1)}%`).join(" → ")}.`
+    : fuel.needsFuelDecision
+      ? `Fuel is ${fuel.currentFuelPercent.toFixed(1)}%. The next direct leg would cross the ${fuel.reserveFloorPercent}% reserve floor.`
+      : fuel.outOfFuel
+        ? "The simulated vehicle cannot continue. Close the route early and review the undelivered stops."
+        : `Current fuel reflects ${fuel.operations.length} completed simulated leg${fuel.operations.length === 1 ? "" : "s"}.`;
+  status.textContent = fuelStatusLabels[fuel.status];
+  status.className = `status ${fuel.status === "within_policy" ? "status-safe" : "status-urgent"}`;
 }
 
 function renderTripWatchContext() {
@@ -191,11 +221,13 @@ function renderPlanning() {
 function renderDayPlayback() {
   const currentItem = state.dayIndex >= 0 ? simulatedDayTimeline[state.dayIndex] : null;
   const hasUnresolvedEvent = currentItem?.kind === "event" && !state.eventChoices[currentItem.id];
+  const fuel = currentFuelSimulation();
   const nextItem = simulatedDayTimeline[state.dayIndex + 1];
   const timeline = document.querySelector("#day-timeline");
   const advanceButton = document.querySelector("#day-advance-button");
   const choice = document.querySelector("#event-choice");
   const decision = document.querySelector("#day-decision");
+  const fuelChoice = document.querySelector("#fuel-decision-choice");
 
   const earlyClosureOutcomes = state.routeCloseReason === "early" ? createDeliveryOutcomeSummary() : null;
   timeline.innerHTML = simulatedDayTimeline.map((item, index) => {
@@ -232,6 +264,8 @@ function renderDayPlayback() {
   }
 
   choice.hidden = !hasUnresolvedEvent;
+  fuelChoice.hidden = !fuel.needsFuelDecision || state.routeClosed;
+  document.querySelector("#fuel-decision-warning").textContent = `The planned stop at ${fuel.refuel.at.name} reaches the pump with ${fuel.refuel.fuelBeforePercent.toFixed(1)}% fuel, then restores the simulated tank to ${fuel.refuel.fuelAfterPercent.toFixed(0)}%. Continuing without refuelling is allowed, but will leave the next delivery below the ${fuel.reserveFloorPercent}% reserve floor.`;
   const eventChoice = currentItem?.kind === "event" ? state.eventChoices[currentItem.id] : null;
   decision.hidden = !eventChoice;
   if (eventChoice) {
@@ -240,8 +274,12 @@ function renderDayPlayback() {
       : "Route kept. The recalculated alternative remains visible in the impact analysis.";
   }
 
-  advanceButton.disabled = !nextItem || hasUnresolvedEvent;
-  advanceButton.textContent = !nextItem
+  advanceButton.disabled = !nextItem || hasUnresolvedEvent || fuel.needsFuelDecision || fuel.outOfFuel;
+  advanceButton.textContent = fuel.outOfFuel
+    ? "Out of fuel — close route early"
+    : fuel.needsFuelDecision
+      ? "Choose a fuel decision"
+      : !nextItem
     ? "Simulated day complete"
     : hasUnresolvedEvent
       ? "Choose an event response"
@@ -252,6 +290,7 @@ function renderDayPlayback() {
   const closeEarlyButton = document.querySelector("#close-route-early-button");
   closeEarlyButton.hidden = state.dayIndex < 0 || state.routeClosed;
   closeEarlyButton.disabled = hasUnresolvedEvent;
+  renderFuelRuntime();
 }
 
 function renderDeliveryReportSummary() {
@@ -307,6 +346,7 @@ function machineFuelPrice(value) {
 
 function createMachineHandoff() {
   const summary = createDeliveryOutcomeSummary();
+  const fuel = currentFuelSimulation();
   const refuel = planning.recommended.refuel;
   const distanceUnit = state.displayUnit === "imperial" ? "mi" : "km";
   const volumeUnit = state.displayUnit === "imperial" ? "us_gal" : "litre";
@@ -320,6 +360,7 @@ function createMachineHandoff() {
     "  external_action = false,",
     `  units = { distance = \"${distanceUnit}\", volume = \"${volumeUnit}\", money = \"${state.displayCurrency}\", money_basis = \"seeded_local_no_conversion\" },`,
     `  refuel = { station = \"${refuel.at.id}\", price = ${machineFuelPrice(refuel.at.pricePerLitreCad).toFixed(3)}, price_unit = \"${state.displayCurrency}_per_${volumeUnit}\", estimated_cost = ${refuel.estimatedPlanCostCad.toFixed(2)} },`,
+    `  fuel = { start_percent = ${fuel.startingFuelPercent.toFixed(1)}, current_percent = ${fuel.currentFuelPercent.toFixed(1)}, reserve_floor_percent = ${fuel.reserveFloorPercent.toFixed(1)}, driver_decision = \"${state.fuelDecision ?? "pending"}\", status = \"${fuel.status}\" },`,
     `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, recorded_legs = ${summary.recordedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)}, close_reason = "${state.routeCloseReason ?? "open"}" },`,
     "  delivery_legs = {",
     ...legs,
@@ -444,6 +485,16 @@ document.querySelector("#close-route-early-button").addEventListener("click", ()
   state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
   render();
   goTo(2);
+});
+document.querySelector("#take-planned-refuel-button").addEventListener("click", () => {
+  if (!currentFuelSimulation().needsFuelDecision) return;
+  state.fuelDecision = "refuel";
+  render();
+});
+document.querySelector("#continue-without-refuel-button").addEventListener("click", () => {
+  if (!currentFuelSimulation().needsFuelDecision) return;
+  state.fuelDecision = "continue";
+  render();
 });
 document.querySelector("#recalculate-route-button").addEventListener("click", () => {
   const currentItem = simulatedDayTimeline[state.dayIndex];

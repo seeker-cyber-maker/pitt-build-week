@@ -26,6 +26,7 @@
 - Diagnosed a public toggle failure as stale GitHub Pages module caching: newer HTML had controls while an older `app.js` lacked their listeners. The module now uses a versioned query string; the deployed controls were clicked and verified live.
 - Made Trip Watch authoritative for the report gate: review opens only after an early route closure or normal route completion.
 - An early route closure now preserves recorded delivery results and marks each remaining delivery as `Undelivered` with `Route closed early before delivery attempt`; the report and Lua handoff share that disposition.
+- Added a driver-owned live fuel simulation to Trip Watch. Each completed leg updates the displayed fuel state; the planned refuel visibly moves fuel through approach, refill, and onward delivery; the driver can instead continue without refuelling, cross the reserve floor, reach a simulated empty tank, and then close the route early.
 
 ## Evidence
 
@@ -37,6 +38,8 @@
 - **Result:** Desktop and mobile walkthroughs completed the five-leg playback, chose both price recalculations, and rendered the final delivery-outcome summary alongside the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow. The confirmation visibly states that no external action was taken.
 - **Command or check:** Local early-close walkthrough.
 - **Result:** Closing after leg 1 produced one recorded `Delivered` outcome and four explicit `Undelivered` outcomes in both the visible report and `pitt.trip_handoff.v1`.
+- **Command or check:** Browser walkthrough of the live-fuel branches.
+- **Result:** Planned refuel raised the tracked fuel from `18.3%` at the pump to `80.0%`, then `67.9%` after leg 2. Declining it reached `6.2%` after leg 2, then `0.0%` with a `13.7%` simulated deficit after leg 3; further driving was disabled while early closure remained available. The Lua handoff recorded `driver_decision = "continue"` and `status = "empty"`.
 
 ## Limits Or Risks
 

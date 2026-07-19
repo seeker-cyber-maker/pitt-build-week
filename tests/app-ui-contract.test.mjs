@@ -72,7 +72,7 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(markup, /exchange rate/i);
   assert.match(app, /formatFuelPrice/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=early-close-disposition-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=live-fuel-simulation-20260719"/);
 });
 
 test("report includes a review-gated Lua machine handoff", async () => {
@@ -103,4 +103,17 @@ test("Trip Watch is the route authority before review can be opened", async () =
   assert.match(app, /if \(!state\.routeClosed\) return/);
   assert.match(app, /Route closed early before delivery attempt/);
   assert.match(app, /status: "undelivered"/);
+});
+
+test("Trip Watch exposes a driver-owned live fuel decision", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /id="take-planned-refuel-button"/);
+  assert.match(markup, /id="continue-without-refuel-button"/);
+  assert.match(markup, /id="fuel-runtime-value"/);
+  assert.match(app, /currentFuelSimulation/);
+  assert.match(app, /Out of fuel — close route early/);
 });

@@ -1,6 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateRisk, createFallbackReport, createRecommendation, demoTrip } from "../app/scenario.js";
+import { calculateRisk, createFallbackReport, createRecommendation, demoTrip, seededTrips } from "../app/scenario.js";
+
+test("seeded scenarios cover safe, tight, and urgent reserve states", () => {
+  assert.deepEqual(calculateRisk(seededTrips.safe), {
+    projectedReservePercent: 18,
+    reserveGapPercent: 6,
+    arrivalDelayMinutes: 12,
+    reserveState: "safe"
+  });
+  assert.deepEqual(calculateRisk(seededTrips.tight), {
+    projectedReservePercent: 12,
+    reserveGapPercent: 0,
+    arrivalDelayMinutes: 34,
+    reserveState: "tight"
+  });
+  assert.deepEqual(calculateRisk(seededTrips.urgent), {
+    projectedReservePercent: 7,
+    reserveGapPercent: -5,
+    arrivalDelayMinutes: 43,
+    reserveState: "urgent"
+  });
+});
 
 test("seeded trip reaches the urgent reserve state", () => {
   const risk = calculateRisk(demoTrip);

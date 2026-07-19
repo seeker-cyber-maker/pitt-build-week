@@ -85,15 +85,38 @@ def _generate_deterministic_report(scenario: ScenarioPayload) -> ReportResult:
     source_label = "seeded" if scenario.scenario_mode == "seeded_demo" else (
         scenario.event_source or "reported"
     )
-    narrative = (
-        f"A {source_label} {scenario.delay_minutes}-minute delay changes projected fuel "
-        f"reserve to {scenario.projected_arrival_reserve_percent}%, below the "
-        f"{scenario.minimum_reserve_percent}% policy floor. "
-        f"The supplied review option is {scenario.stop_label}, "
-        f"{scenario.stop_distance_km} km away with a planned "
-        f"{scenario.stop_detour_minutes}-minute detour. "
-        f"Driver review is required before any external action."
-    )
+    if scenario.reserve_gap_percent < 0:
+        reserve_summary = (
+            f"{scenario.projected_arrival_reserve_percent}%, below the "
+            f"{scenario.minimum_reserve_percent}% policy floor"
+        )
+    elif scenario.reserve_gap_percent == 0:
+        reserve_summary = (
+            f"{scenario.projected_arrival_reserve_percent}%, at the "
+            f"{scenario.minimum_reserve_percent}% policy floor"
+        )
+    else:
+        reserve_summary = (
+            f"{scenario.projected_arrival_reserve_percent}%, "
+            f"{scenario.reserve_gap_percent} percentage points above the "
+            f"{scenario.minimum_reserve_percent}% policy floor"
+        )
+
+    if scenario.decision_type == "continue_as_planned":
+        narrative = (
+            f"A {source_label} {scenario.delay_minutes}-minute delay leaves projected fuel "
+            f"reserve at {reserve_summary}. The supplied scenario keeps the trip on its "
+            f"planned corridor; no fuel-stop review is needed. Driver review remains "
+            f"available before any external action."
+        )
+    else:
+        narrative = (
+            f"A {source_label} {scenario.delay_minutes}-minute delay changes projected fuel "
+            f"reserve to {reserve_summary}. The supplied review option is {scenario.stop_label}, "
+            f"{scenario.stop_distance_km} km away with a planned "
+            f"{scenario.stop_detour_minutes}-minute detour. "
+            f"Driver review is required before any external action."
+        )
 
     return ReportResult(
         schema_version="pitt.report-draft.v1",

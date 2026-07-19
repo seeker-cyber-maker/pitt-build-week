@@ -1,8 +1,8 @@
 # Harness Handoff: Codex
 
-- **Status:** ready for integration
+- **Status:** in progress
 - **Lane:** Integration
-- **Branch/worktree:** `main` during bootstrap only; future integration uses `harness/codex-integration`
+- **Branch/worktree:** `harness/codex-integration`
 - **Started:** 2026-07-18
 
 ## Changed Or Investigated
@@ -13,20 +13,27 @@
 - Added `package.json` commands for local testing and serving.
 - Defined the shared report boundary in `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md` with bounded seeded input and deterministic fallback output fixtures.
 - Updated Patrick's lane prompt to require contract validation, exact preservation of deterministic facts, and zero provider calls for the local seeded fixture.
+- Merged Patrick's AI/report implementation, routing-contract review, and seeded-scenario validation.
+- Added canonical safe and tight report input/output fixtures alongside the urgent fixture; all three match the deterministic report generator exactly.
+- Corrected the fallback narrative so below-floor, at-floor, and above-floor reserves use accurate language and a safe scenario does not invent a zero-distance stop.
+- Added all three reserve states to `app/scenario.js`; the visible demo remains intentionally pinned to the urgent scenario.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 5/5 tests passed: urgent reserve calculation, scope-bounded recommendation, provenance-bearing local fallback report, and report-contract input/output checks.
+- **Result:** 6/6 tests passed: safe, tight, and urgent reserve calculations; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
+- **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
-- **Result:** Trip watch -> driver acknowledgment -> report draft -> confirmation state all rendered and changed local state. Screenshot: `/tmp/pitt-demo-report.png`.
+- **Result:** Trip watch -> driver acknowledgment -> report draft -> confirmation state all rendered and changed local state. The confirmation visibly states that no external action was taken.
 
 ## Limits Or Risks
 
-- The present scenario is intentionally local and duplicates the narrow visual/demo contract so it can run before the scenario/UI/report lanes land. Those lanes should replace or extract this implementation rather than add a second competing flow.
+- The present scenario is intentionally local. The visible shell is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
+- The static browser shell uses its local deterministic fallback. The provider-neutral Python report module is independently validated and remains ready for a later single integration seam.
 - No provider endpoint is called. The report is explicitly labeled as a deterministic local fallback.
 
 ## Next Small Action
 
-- Patrick implements `packages/ai/` against `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`, beginning with the local `fallback_ready` fixture. The seeded input has `outbound_provider_authorized: false`, so the first implementation must not call any provider.
-- Keep the current `app/` demo shell until each lane-owned package is integrated at a single seam; do not introduce a second competing flow.
+- Run the submission-evidence lane: produce the demo script, checklist, build evidence, and README polish around the now-validated local demo.
+- Keep the current `app/` demo shell as the one visible flow. Do not extract another scenario engine or add a second report generator unless it replaces the existing seam deliberately.

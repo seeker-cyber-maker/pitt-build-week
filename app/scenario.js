@@ -1,22 +1,49 @@
-export const demoTrip = Object.freeze({
-  id: "PITT-DEMO-017",
-  driver: "Jordan Lee",
-  cargo: "Refrigerated groceries",
-  destination: "North Market Distribution Centre",
-  plannedCorridor: "A-40 East / local delivery corridor",
-  departure: "08:10",
-  plannedArrival: "10:40",
-  fuelPercent: 24,
-  minimumReservePercent: 12,
-  projectedFuelBurnPercent: 17,
-  delayMinutes: 28,
-  stop: {
-    name: "Northbound Service Plaza",
-    distanceKm: 19,
-    detourMinutes: 15,
-    status: "Pre-approved demo stop"
-  }
+export const seededTrips = Object.freeze({
+  safe: Object.freeze({
+    id: "PITT-DEMO-018",
+    driver: "Samir Patel",
+    cargo: "Dry goods",
+    destination: "Southside Logistics Hub",
+    plannedCorridor: "Highway 20 West / planned corridor",
+    departure: "08:10",
+    plannedArrival: "10:40",
+    fuelPercent: 45,
+    minimumReservePercent: 12,
+    projectedFuelBurnPercent: 27,
+    delayMinutes: 12,
+    stop: { name: "No fuel stop required", distanceKm: 0, detourMinutes: 0, status: "Reserve remains above the seeded policy floor" }
+  }),
+  tight: Object.freeze({
+    id: "PITT-DEMO-019",
+    driver: "Aisha Dubois",
+    cargo: "Refrigerated pharmaceuticals",
+    destination: "East End Medical Depot",
+    plannedCorridor: "A-10 East / planned corridor",
+    departure: "08:10",
+    plannedArrival: "10:40",
+    fuelPercent: 32,
+    minimumReservePercent: 12,
+    projectedFuelBurnPercent: 20,
+    delayMinutes: 22,
+    stop: { name: "Eastbridge Travel Centre", distanceKm: 14, detourMinutes: 12, status: "Pre-approved seeded corridor stop" }
+  }),
+  urgent: Object.freeze({
+    id: "PITT-DEMO-017",
+    driver: "Jordan Lee",
+    cargo: "Refrigerated groceries",
+    destination: "North Market Distribution Centre",
+    plannedCorridor: "A-40 East / local delivery corridor",
+    departure: "08:10",
+    plannedArrival: "10:40",
+    fuelPercent: 24,
+    minimumReservePercent: 12,
+    projectedFuelBurnPercent: 17,
+    delayMinutes: 28,
+    stop: { name: "Northbound Service Plaza", distanceKm: 19, detourMinutes: 15, status: "Pre-approved demo stop" }
+  })
 });
+
+export const demoTrip = seededTrips.urgent;
 
 export function calculateRisk(trip) {
   const projectedReservePercent = trip.fuelPercent - trip.projectedFuelBurnPercent;
@@ -32,7 +59,25 @@ export function calculateRisk(trip) {
 }
 
 export function createRecommendation(trip, risk = calculateRisk(trip)) {
-  const urgency = risk.reserveState === "urgent" ? "Fuel stop review required" : "Fuel stop recommended";
+  if (risk.reserveState === "safe") {
+    return {
+      urgency: "Continue as planned",
+      title: "Continue as planned",
+      summary: `Projected reserve is ${risk.projectedReservePercent}%, ${risk.reserveGapPercent}% above the ${trip.minimumReservePercent}% policy floor.`,
+      reasons: [
+        `Delay adds ${trip.delayMinutes} minutes to the seeded trip.`,
+        "No fuel stop review is needed for this seeded scenario.",
+        "No live station, traffic, or price feed is used."
+      ],
+      alternatives: [
+        "Continue as planned: projected reserve remains above policy.",
+        "Optionally review the next pre-approved corridor stop: adds 10 seeded minutes."
+      ],
+      confidence: "Seeded arithmetic only; not a live corridor prediction."
+    };
+  }
+
+  const urgency = risk.reserveState === "urgent" ? "Fuel stop review required" : "Fuel stop review recommended";
 
   return {
     urgency,

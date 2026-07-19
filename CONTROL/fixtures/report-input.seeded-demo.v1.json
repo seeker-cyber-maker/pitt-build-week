@@ -31,7 +31,7 @@
     "selection_basis": "pre-approved demo stop",
     "alternatives": [
       "Continue without stopping: projected reserve remains below policy.",
-      "Contact dispatch for a different approved stop: review needed before changing the plan."
+      "Review a different approved stop: driver confirmation is required before changing the plan."
     ],
     "driver_review_required": true
   },

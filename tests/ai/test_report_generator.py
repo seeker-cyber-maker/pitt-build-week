@@ -74,6 +74,22 @@ class TestContractFixture(unittest.TestCase):
         result = generate_report(scenario)
         self.assertEqual(result.to_dict(), EXPECTED_FALLBACK)
 
+    def test_all_seeded_fixtures_produce_their_canonical_outputs(self):
+        _clear_env()
+        for state in ("demo", "safe", "tight"):
+            input_name = (
+                "report-input.seeded-demo.v1.json"
+                if state == "demo"
+                else f"report-input.seeded-{state}.v1.json"
+            )
+            output_name = (
+                "report-output.fallback.v1.json"
+                if state == "demo"
+                else f"report-output.seeded-{state}.v1.json"
+            )
+            scenario = ScenarioPayload.from_dict(_load_fixture(input_name))
+            self.assertEqual(generate_report(scenario).to_dict(), _load_fixture(output_name))
+
 
 # ---------------------------------------------------------------------------
 # Deterministic fallback tests
@@ -139,6 +155,24 @@ class TestDeterministicFallback(unittest.TestCase):
         result = generate_report(scenario)
         self.assertTrue(result.review_required)
         self.assertFalse(result.review_confirmed)
+
+    def test_safe_reserve_uses_above_floor_wording_without_a_fake_stop(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(
+            _load_fixture("report-input.seeded-safe.v1.json")
+        )
+        result = generate_report(scenario)
+        self.assertIn("18%, 6 percentage points above the 12% policy floor", result.narrative)
+        self.assertIn("no fuel-stop review is needed", result.narrative)
+        self.assertNotIn("0 km away", result.narrative)
+
+    def test_tight_reserve_uses_at_floor_wording(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(
+            _load_fixture("report-input.seeded-tight.v1.json")
+        )
+        result = generate_report(scenario)
+        self.assertIn("12%, at the 12% policy floor", result.narrative)
 
 
 # ---------------------------------------------------------------------------

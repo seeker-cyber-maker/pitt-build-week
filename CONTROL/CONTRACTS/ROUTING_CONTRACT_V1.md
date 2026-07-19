@@ -53,12 +53,13 @@ An empty or incomplete `declared_restrictions` list means restrictions are unkno
 ## Required Behavior
 
 1. Validate the declared mode, origin label, destination label, and complete reserve facts before emitting a recommendation. Missing required facts return `validation_failed` and list the fields in `blocking_unknowns`.
-2. Treat vehicle restrictions, cargo restrictions, clearance, current traffic, weather, station availability, price, and driver-hours compliance as `unknown` unless supplied with source and freshness metadata.
-3. Never issue turn-by-turn instructions, control a vehicle, change dispatch plans, or describe a route as safe or compliant.
-4. Keep a recommendation reviewable: expose assumptions, alternatives, provenance, `context_summary`, and degraded behavior.
-5. When non-blocking external data is missing, return `degraded_ready` with explicit limitations rather than guessing. Weather, driver-hours state, restrictions, traffic, prices, and station availability are non-blocking unless a future declared policy says otherwise.
-6. The report layer consumes only the minimal `report_projection`; it does not receive raw location history or map-provider payloads.
-7. Narrative fields use cooperative phrasing such as "recommended stop" and "please review". They must not use imperative wording, imply dispatch authority, or describe surveillance.
+2. Classify the supplied reserve gap deterministically: greater than 3 percentage points is `safe`; 0 through 3 points inclusive is `tight`; below 0 is `urgent`.
+3. Treat vehicle restrictions, cargo restrictions, clearance, current traffic, weather, station availability, price, and driver-hours compliance as `unknown` unless supplied with source and freshness metadata.
+4. Never issue turn-by-turn instructions, control a vehicle, change dispatch plans, or describe a route as safe or compliant.
+5. Keep a recommendation reviewable: expose assumptions, alternatives, provenance, `context_summary`, and degraded behavior.
+6. When non-blocking external data is missing, return `degraded_ready` with explicit limitations rather than guessing. Weather, driver-hours state, restrictions, traffic, prices, and station availability are non-blocking unless a future declared policy says otherwise.
+7. The report layer consumes only the minimal `report_projection`; it does not receive raw location history or map-provider payloads.
+8. Narrative fields use cooperative phrasing such as "recommended stop" and "please review". They must not use imperative wording, imply dispatch authority, or describe surveillance.
 
 ## Data Boundary
 

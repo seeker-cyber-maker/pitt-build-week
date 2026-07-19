@@ -1,0 +1,43 @@
+{
+  "schema_version": "pitt.report-input.v1",
+  "scenario": {
+    "id": "PITT-DEMO-018",
+    "mode": "seeded_demo"
+  },
+  "trip": {
+    "driver_display_alias": "Samir Patel",
+    "cargo_category": "dry goods",
+    "destination_label": "Southside Logistics Hub",
+    "route_label": "Highway 20 West / planned corridor"
+  },
+  "event": {
+    "type": "delay_and_reserve_risk",
+    "delay_minutes": 12,
+    "source": "seeded local scenario"
+  },
+  "deterministic_assessment": {
+    "calculation_version": "pitt.reserve-risk.v1",
+    "current_fuel_percent": 45,
+    "projected_arrival_reserve_percent": 18,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": 6,
+    "status": "safe"
+  },
+  "proposed_decision": {
+    "type": "continue_as_planned",
+    "stop_label": "No fuel stop required",
+    "distance_km": 0,
+    "detour_minutes": 0,
+    "selection_basis": "Projected reserve remains 6% above the seeded policy floor; no stop review is needed.",
+    "alternatives": [
+      "Continue as planned: projected reserve remains above policy.",
+      "Optionally review the next pre-approved corridor stop: adds 10 seeded minutes."
+    ],
+    "driver_review_required": true
+  },
+  "data_handling": {
+    "provenance": "seeded_local",
+    "retention": "session_only",
+    "outbound_provider_authorized": false
+  }
+}

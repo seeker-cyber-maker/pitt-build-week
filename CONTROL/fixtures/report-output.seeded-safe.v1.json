@@ -1,0 +1,27 @@
+{
+  "schema_version": "pitt.report-draft.v1",
+  "status": "fallback_ready",
+  "provenance": {
+    "kind": "deterministic_fallback"
+  },
+  "deterministic_facts": {
+    "scenario_id": "PITT-DEMO-018",
+    "event_type": "delay_and_reserve_risk",
+    "delay_minutes": 12,
+    "projected_arrival_reserve_percent": 18,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": 6,
+    "recommended_stop": "No fuel stop required",
+    "stop_distance_km": 0,
+    "stop_detour_minutes": 0
+  },
+  "narrative": "A seeded 12-minute delay leaves projected fuel reserve at 18%, 6 percentage points above the 12% policy floor. The supplied scenario keeps the trip on its planned corridor; no fuel-stop review is needed. Driver review remains available before any external action.",
+  "review": {
+    "required": true,
+    "confirmed": false
+  },
+  "limitations": [
+    "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+    "This draft does not control a vehicle or issue a driving instruction."
+  ]
+}

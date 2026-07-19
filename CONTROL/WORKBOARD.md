@@ -17,7 +17,7 @@ Deliver a credible, runnable Build Week demo before the deadline, with a small e
 | Status | Lane | Owner / Harness | Deliverable | Acceptance check |
 | --- | --- | --- | --- | --- |
 | in progress | Integration | Codex | Runnable app shell, scope guard, final merge | Seeded flow runs locally and build evidence is captured |
-| ready | Scenario engine | OpenCode | Deterministic trip data, reserve-risk calculator, report payload schema | Unit cases cover safe, tight, and urgent reserve states |
+| complete | Scenario data and reserve logic | Codex integration | Canonical safe, tight, and urgent fixtures plus deterministic local calculation | All three states are driver-validated and covered by tests; avoid a duplicate engine |
 | ready | Product UI | AGY | Three-screen demo flow: trip, alert, review/report | Every visible control is wired to local state |
 | complete | AI/report boundary | Patrick / Claude | Provider adapter with a deterministic offline fallback | 21 Python tests and exact canonical fixture comparison pass |
 | complete | Routing contract review | Patrick / Claude | Driver-informed review of `ROUTING_CONTRACT_V1.md` | Five operational questions answered; accepted contract clarifications applied by integration |

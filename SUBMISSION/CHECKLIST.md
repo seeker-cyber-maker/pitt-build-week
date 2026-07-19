@@ -20,7 +20,7 @@
   `npm test` runs Node.js scenario and contract tests. `python3 -m http.server 4173 --directory app` serves the demo. Both documented in `package.json`.
 
 - [x] **Node.js tests pass.**
-  `npm test` — 6 tests across `tests/scenario.test.mjs`, `tests/report-contract.test.mjs`, and `tests/app-ui-contract.test.mjs`. Covers safe/tight/urgent reserves, report contract shape, UI element binding, and provenance wording.
+  `npm test` — 8 tests across `tests/scenario.test.mjs`, `tests/report-contract.test.mjs`, and `tests/app-ui-contract.test.mjs`. Covers safe/tight/urgent reserves, report contract shape, UI element binding, and provenance wording.
 
 - [x] **Python AI/report tests pass.**
   `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` — 24 tests covering deterministic fallback for all three seeded inputs, provider error handling (HTTP error, connection error, timeout, malformed response, empty response), AI success path, configuration detection, secret masking, and report-result contract shape.

@@ -65,7 +65,7 @@ The sidebar reminds the driver: PITT does not contact carrier systems, change th
 
 Codex managed the integration lane — setting up the collaboration structure, defining scope contracts, merging validated contributions, and maintaining test evidence across branches.
 
-GPT-5.6 was available as the approved AI endpoint behind the report-drafting adapter. When configured, it drafts a natural-language summary from the deterministic facts. It does not add facts, change severity, or issue instructions. The fallback deterministic report is always available without it."
+GPT-5.6 supported the design and review of the bounded report-drafting contract. The adapter can later use an approved OpenAI-compatible endpoint to draft a natural-language summary from deterministic facts, without changing severity or issuing instructions. For this recording, we intentionally use the deterministic local fallback only."
 
 ---
 

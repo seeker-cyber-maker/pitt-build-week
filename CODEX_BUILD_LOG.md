@@ -63,7 +63,7 @@
 ### Driver walkthrough integration
 - **Commits:** `7dcdd22`, `3aef825`
 - **Files:** `CONTROL/PROMPTS/PATRICK_DEMO_WALKTHROUGH.md`, `app/scenario.js`, `tests/scenario.test.mjs`, `tests/app-ui-contract.test.mjs`
-- **Evidence:** `npm test` — 6 tests pass. UI contract test confirms every `querySelector` target exists in `index.html`, and the fallback report uses plain-language provenance (not internal jargon).
+- **Evidence:** `npm test` — 8 tests pass. UI contract test confirms every `querySelector` target exists in `index.html`, and the fallback report uses plain-language provenance (not internal jargon).
 - **Notes:** Walkthrough findings led to copy corrections: "below policy floor" language, selection-basis and alternatives in the report, and removal of internal terminology from driver-facing text.
 
 ### Seeded scenario validation (all three reserve states)

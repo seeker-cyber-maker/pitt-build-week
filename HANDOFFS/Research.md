@@ -1,6 +1,6 @@
 # Harness Handoff: Research
 
-- **Status:** review requested
+- **Status:** complete
 - **Lane:** Submission
 - **Branch/worktree:** `harness/research-submission` / `/Volumes/GitHub/GitHub/worktrees/pitt-research-submission`
 - **Started:** 2026-07-19
@@ -77,7 +77,5 @@
 
 ## Next Small Action
 
-- Run acceptance tests (`npm test`, `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`, `git diff --check`).
-- Commit the five submission artifacts on `harness/research-submission`.
-- Push the branch.
+- Integration merged the submission evidence at `091c13a`, corrected the stale Node test count to 8, and removed the unsupported implication that GPT-5.6 is configured for the recording.
 - A human should review the open questions above before final submission.

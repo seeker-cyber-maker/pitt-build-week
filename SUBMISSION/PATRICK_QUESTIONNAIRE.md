@@ -23,18 +23,29 @@
 
 ### Réponse de Patrick :
 
-**Option B — Champ "Commentaires du chauffeur" nécessaire**
+**Distinction claire entre deux usages :**
 
-Un vrai rapport d'incident camionnage comprend :
-- Des champs structurés (date, heure, lieu, véhicule, cargaison)
-- **Beaucoup d'espace pour l'explication écrite du chauffeur**
+| Usage | Cible | Format | Niveau de détail |
+|-------|-------|--------|------------------|
+| **Alerte live au chauffeur** | Le chauffeur sur la route | Push / notification | **Minimal** — juste "Alerte : niveau de fuel REEFER bas" |
+| **Rapport à l'employeur** | Dispatch / back-office | Document structuré | **Détaillé** — narrative complète avec faits et limites |
 
-La narrative auto PITT est un bon début, mais elle manque de la **voix du chauffeur**. Exemples de commentaires utiles :
-> *"J'ai pris cet arrêt parce que l'autre était plein"*  
-> *"Le détour était plus long que prévu à cause de travaux"*  
-> *"J'ai contacté dispatch à 14h30, pas de réponse"*
+**Pour l'alerte live :**
+Le chauffeur n'a pas le temps de lire un paragraphe en conduisant. L'alerte doit être :
+- **Instantanée** : push ou sonore
+- **Ciblée** : "Fuel REEFER bas" ou "Réserve en dessous du plancher"
+- **Actionnable** : un bouton "Voir détails" si le chauffeur veut approfondir à l'arrêt
 
-**Recommandation :** Ajouter un champ `driver_comments` dans `pitt.report-draft.v1`, optionnel, libre texte, limité à ~500 caractères pour rester concis.
+**Pour le rapport employeur (la partie encadrée du vrai formulaire) :**
+La narrative PITT actuelle est **appropriée** — elle résume la situation en phrases complètes sans jargon. C'est la partie que le chauffeur transmet à dispatch après coup.
+
+**Amélioration souhaitée :**
+Le format du rapport devrait être **programmable/configurable par le client** (transporteur). Exemples :
+- Certains veulent juste les faits numériques
+- D'autres veulent la narrative complète
+- D'autres encore veulent un mix avec leurs propres champs obligatoires
+
+**Recommandation :** Garder `pitt.report-draft.v1` comme format par défaut, mais documenter qu'un transporteur peut configurer le template de sortie selon ses besoins internes.
 
 ---
 

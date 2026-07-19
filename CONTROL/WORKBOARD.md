@@ -20,7 +20,7 @@ Deliver a credible, runnable Build Week demo before the deadline, with a small e
 | ready | Scenario engine | OpenCode | Deterministic trip data, reserve-risk calculator, report payload schema | Unit cases cover safe, tight, and urgent reserve states |
 | ready | Product UI | AGY | Three-screen demo flow: trip, alert, review/report | Every visible control is wired to local state |
 | complete | AI/report boundary | Patrick / Claude | Provider adapter with a deterministic offline fallback | 21 Python tests and exact canonical fixture comparison pass |
-| ready | Routing contract review | Patrick / Claude | Driver-informed review of `ROUTING_CONTRACT_V1.md` in Patrick's handoff | Answers the five operational review questions; proposed contract changes stay in the handoff |
+| complete | Routing contract review | Patrick / Claude | Driver-informed review of `ROUTING_CONTRACT_V1.md` | Five operational questions answered; accepted contract clarifications applied by integration |
 | ready | Submission | Research / writer lane | Demo script, README, build log, submission checklist | 3-minute narration script matches current UI |
 | later | Integrations | None | Real traffic, maps, ELD/telematics, fuel feeds | Explicitly out of Build Week scope |
 

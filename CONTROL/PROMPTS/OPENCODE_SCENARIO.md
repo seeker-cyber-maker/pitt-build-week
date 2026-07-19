@@ -3,7 +3,7 @@
 Worktree: `/Volumes/GitHub/GitHub/worktrees/pitt-opencode-scenario`
 Branch: `harness/opencode-scenario`
 
-Read `README.md`, `CONTROL/PRODUCT_SCOPE.md`, `CONTROL/WORKBOARD.md`, and `CONTROL/HARNESS_BRIEF.md` first.
+Read `README.md`, `CONTROL/PRODUCT_SCOPE.md`, `CONTROL/WORKBOARD.md`, `CONTROL/HARNESS_BRIEF.md`, and `CONTROL/CONTRACTS/ROUTING_CONTRACT_V1.md` first.
 
 Build the deterministic scenario engine only. Do not build UI, call a model, add live APIs, or change scope documents.
 
@@ -16,6 +16,8 @@ Create `packages/scenario/` and `tests/scenario/` with a small dependency-free T
 - one primary and one fallback pre-approved fuel-stop option;
 - plain-language deterministic reasons;
 - a report payload for a later AI drafting layer.
+
+The structured decision must follow the routing contract's Build Week boundary: block output when origin, destination, or reserve facts are missing; label non-blocking missing external data as assumptions; include a human-readable degraded-mode statement; and use `context_summary`, not imperative navigation language.
 
 ## Required Cases
 

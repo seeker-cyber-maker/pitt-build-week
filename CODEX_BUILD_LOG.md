@@ -77,3 +77,9 @@
 - **Files:** `DEMO_SCENARIO.md`, `SUBMISSION/VIDEO_SCRIPT.md`, `SUBMISSION/CHECKLIST.md`, `CODEX_BUILD_LOG.md`, `HANDOFFS/Research.md`
 - **Evidence:** All claims cross-checked against `CONTROL/PRODUCT_SCOPE.md`. `npm test` and `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` run before commit.
 - **Notes:** No application code changed. Submission artifacts only.
+
+### Local planning ledger and visible route comparison
+- **Commit:** pending integration commit
+- **Files:** `app/planner.js`, `app/index.html`, `app/app.js`, `app/styles.css`, `tests/planner.test.mjs`, `tests/app-ui-contract.test.mjs`, `DEMO_SCENARIO.md`, `SUBMISSION/VIDEO_SCRIPT.md`
+- **Evidence:** `npm test` — 11 Node tests pass. Browser checks at desktop and 390px mobile widths show the delivery ledger, recommended route, deliberately rejected loop, and existing trip-exception flow.
+- **Notes:** Every coordinate, station, route distance, and fuel calculation is seeded local demo data. The visual is explicitly a simulated map, not live navigation.

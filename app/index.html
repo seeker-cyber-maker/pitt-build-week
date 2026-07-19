@@ -19,6 +19,33 @@
         <p class="lede">A refrigerated delivery is delayed. PITT turns a fuel-reserve risk into a reviewable option and a report draft, without controlling the truck or using live fleet data.</p>
       </section>
 
+      <section class="planning" aria-labelledby="planning-title">
+        <div class="screen-heading">
+          <div><p class="eyebrow">Simulated planning ledger</p><h2 id="planning-title">Sort the work before the road gets expensive</h2></div>
+          <span class="status status-safe">Local map simulation</span>
+        </div>
+        <p class="planning-intro">A local delivery list is ranked by its stated time window. Seeded fuel math adds the closest reachable simulated fuel stop before the policy floor would be crossed. The map is a made-up corridor for this demo, not live navigation.</p>
+        <div class="planning-summary" id="planning-summary"></div>
+        <div class="planning-layout">
+          <div class="panel ledger-panel">
+            <div class="panel-title"><h3>Delivery ledger</h3><span>Sorted locally</span></div>
+            <div class="delivery-list" id="delivery-list"></div>
+          </div>
+          <div class="panel map-panel">
+            <div class="map-toolbar">
+              <div><h3>Route comparison</h3><p id="map-plan-caption"></p></div>
+              <div class="map-switch" role="group" aria-label="Route map view">
+                <button class="map-mode is-selected" data-map-mode="recommended" type="button">Recommended</button>
+                <button class="map-mode" data-map-mode="rejected" type="button">Rejected loop</button>
+              </div>
+            </div>
+            <div class="map-canvas" id="map-canvas" aria-live="polite"></div>
+            <div class="map-legend"><span><i class="legend-line recommended"></i>Recommended route</span><span><i class="legend-line rejected"></i>Rejected loop</span><span><i class="legend-dot"></i>Simulated fuel stop</span></div>
+          </div>
+        </div>
+        <div class="action-row planning-actions"><button class="button secondary" id="rebuild-plan-button" type="button">Rebuild local plan</button></div>
+      </section>
+
       <nav class="progress" aria-label="Demo progress">
         <button data-go-to="1" data-progress="1" type="button"><b>1</b><span>Trip watch</span></button>
         <button data-go-to="2" data-progress="2" type="button"><b>2</b><span>Driver review</span></button>

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createFallbackReport, demoTrip } from "../app/scenario.js";
+import { deliveryWindowLabels } from "../app/planner.js";
 
 test("renderer references only existing review controls", async () => {
   const [app, markup] = await Promise.all([
@@ -15,6 +16,10 @@ test("renderer references only existing review controls", async () => {
   }
 
   assert.match(markup, /Projected reserve falls below the policy floor/);
+  assert.match(markup, /Simulated planning ledger/);
+  assert.match(markup, /Local map simulation/);
+  assert.equal(deliveryWindowLabels.before_noon, "Before noon");
+  assert.equal(deliveryWindowLabels.flexible, "No time specified");
   assert.match(app, /below policy floor \(gap: \$\{risk.reserveGapPercent\}%\)/);
   assert.doesNotMatch(markup, /supplied by the scenario/i);
 });

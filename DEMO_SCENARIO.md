@@ -1,7 +1,13 @@
 # PITT Demo Scenario
 
 > Exact narrative of the seeded urgent trip used in the Build Week demo.
-> Every fact below is represented by `app/scenario.js` and `CONTROL/fixtures/report-input.seeded-demo.v1.json`.
+> Every trip-exception fact below is represented by `app/scenario.js` and `CONTROL/fixtures/report-input.seeded-demo.v1.json`. The separate planning preview is represented by `app/planner.js`.
+
+## Simulated Planning Preview
+
+Before the active trip exception, the demo shows a local delivery ledger with five simulated destinations. It orders declared time windows as `ASAP`, `Before noon`, `Before EOB`, `All day`, then `No time specified`. A fixed-coordinate, made-up corridor map compares that plan with a deliberately rejected loop.
+
+The recommended plan inserts Cedar Service Plaza before North Market Distribution Centre because the next direct leg would cross the seeded 14% reserve floor. The comparison is deterministic and visibly labelled a local map simulation. It is not a claim about real roads, stations, traffic, distance, routing, or fuel availability.
 
 ## Trip Context
 
@@ -68,7 +74,7 @@ When no AI provider is configured, the report is labeled **Fallback draft / Loca
 
 This demo operates entirely within a local browser session. It does not use:
 
-- Live GPS, mapping, or traffic data.
+- Live GPS, real mapping, or traffic data.
 - Real fuel-station prices or availability.
 - Telematics, ELD, or vehicle-control systems.
 - Dispatch, fleet management, or carrier APIs.

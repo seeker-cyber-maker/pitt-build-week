@@ -17,23 +17,25 @@
 - Added canonical safe and tight report input/output fixtures alongside the urgent fixture; all three match the deterministic report generator exactly.
 - Corrected the fallback narrative so below-floor, at-floor, and above-floor reserves use accurate language and a safe scenario does not invent a zero-distance stop.
 - Added all three reserve states to `app/scenario.js`; the visible demo remains intentionally pinned to the urgent scenario.
+- Added `app/planner.js`: a separate deterministic planning preview with a local delivery ledger, declared time-window ordering, reachable simulated refuel selection, and a recommended-versus-rejected route comparison. The map is explicitly made up and cannot be mistaken for live routing.
+- Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 6/6 tests passed: safe, tight, and urgent reserve calculations; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Result:** 11/11 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; scope-bounded recommendation; and provenance-bearing local fallback report.
 - **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
 - **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
-- **Result:** Trip watch -> driver acknowledgment -> report draft -> confirmation state all rendered and changed local state. The confirmation visibly states that no external action was taken.
+- **Result:** The planning ledger, recommended plan, rejected loop, and the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow all rendered and changed local state. The confirmation visibly states that no external action was taken.
 
 ## Limits Or Risks
 
-- The present scenario is intentionally local. The visible shell is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
+- The present scenario is intentionally local. The planning preview uses invented coordinates, fuel stops, and distances; it is not a live planning engine. The visible exception flow is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
 - The static browser shell uses its local deterministic fallback. The provider-neutral Python report module is independently validated and remains ready for a later single integration seam.
 - No provider endpoint is called. The report is explicitly labeled as a deterministic local fallback.
 
 ## Next Small Action
 
-- Run the submission-evidence lane: produce the demo script, checklist, build evidence, and README polish around the now-validated local demo.
-- Keep the current `app/` demo shell as the one visible flow. Do not extract another scenario engine or add a second report generator unless it replaces the existing seam deliberately.
+- Re-record or update the short demo walkthrough to include the local planning preview before Trip Watch.
+- Keep the current `app/` demo shell as the one visible flow. Do not attach real map, station, or routing feeds for this Build Week submission.

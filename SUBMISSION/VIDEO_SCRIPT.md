@@ -1,11 +1,11 @@
 # PITT Video Script
 
 > Spoken walkthrough, approximately three minutes.
-> Match the visible three-step flow: Trip watch → Driver review → Report draft.
+> Match the visible planning preview and three-step flow: local plan → Trip watch → Driver review → Report draft.
 
 ---
 
-## Opening (≈ 20 seconds)
+## Opening (≈ 15 seconds)
 
 "This is PITT — a trip-exception and report assistant for delivery drivers.
 
@@ -15,7 +15,17 @@ Everything you are about to see runs locally. The scenario is seeded. The calcul
 
 ---
 
-## Step 1 — Trip Watch (≈ 40 seconds)
+## Local Planning Preview (≈ 25 seconds)
+
+_[Screen shows the simulated planning ledger and local map simulation.]_
+
+"Before the active trip, PITT shows a small local planning preview. Five simulated deliveries are sorted from ASAP through flexible work. The system compares that order with a deliberately wasteful loop drawn on a made-up corridor map.
+
+The recommended version inserts a reachable simulated fuel stop before the next leg would cross the 14-percent reserve floor. This is deliberately not live navigation: the coordinates, stations, and fuel math are all local demo data. The point is to make the ordering and refuel decision inspectable."
+
+---
+
+## Step 1 — Trip Watch (≈ 35 seconds)
 
 _[Screen shows the Trip Watch panel with the "Demo scenario · local data only" label visible in the header.]_
 
@@ -29,7 +39,7 @@ When we click 'Check fuel reserve,' PITT runs a local calculation: 24 percent fu
 
 ---
 
-## Step 2 — Driver Review and Acknowledgment (≈ 50 seconds)
+## Step 2 — Driver Review and Acknowledgment (≈ 45 seconds)
 
 _[Screen shows the alert panel with the projected reserve, fuel bar, and recommendation card.]_
 
@@ -45,7 +55,7 @@ This is important: PITT does not act on its own. The driver's review unlocks the
 
 ---
 
-## Step 3 — Report Draft and Confirmation (≈ 50 seconds)
+## Step 3 — Report Draft and Confirmation (≈ 45 seconds)
 
 _[Screen shows the report draft panel with the 'Fallback draft' badge and the confirmation sidebar.]_
 
@@ -81,11 +91,12 @@ Thank you."
 
 | Section | Target |
 | --- | --- |
-| Opening | 0:00–0:20 |
-| Step 1 — Trip Watch | 0:20–1:00 |
-| Step 2 — Driver Review | 1:00–1:50 |
-| Step 3 — Report Draft | 1:50–2:40 |
-| AI Tooling | 2:40–3:00 |
-| Closing | 3:00–3:10 |
+| Opening | 0:00–0:15 |
+| Local planning preview | 0:15–0:40 |
+| Step 1 — Trip Watch | 0:40–1:15 |
+| Step 2 — Driver Review | 1:15–2:00 |
+| Step 3 — Report Draft | 2:00–2:45 |
+| AI Tooling | 2:45–3:05 |
+| Closing | 3:05–3:15 |
 
 Total: approximately 3 minutes.

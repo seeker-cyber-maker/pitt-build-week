@@ -1,28 +1,39 @@
 # Harness Handoff: Patrick
 
-- **Status:** ready
+- **Status:** ready for integration
 - **Lane:** AI/report boundary
-- **Branch/worktree:** `harness/patrick-ai-report` / `/Volumes/GitHub/GitHub/worktrees/pitt-patrick-ai-report`
-- **Started:**
+- **Branch/worktree:** `harness/patrick-ai-report`
+- **Started:** 2026-07-18
+- **Completed:** 2026-07-19
 
-## Changed Or Investigated
+## Delivered
 
-- Shared input/output contract is ready: `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`.
-- Routing/mapping design boundary is ready: `CONTROL/CONTRACTS/ROUTING_CONTRACT_V1.md`.
-- Seeded local input: `CONTROL/fixtures/report-input.seeded-demo.v1.json`.
-- Required deterministic fallback shape: `CONTROL/fixtures/report-output.fallback.v1.json`.
+- Implemented `packages/ai/` as a provider-neutral report drafting module aligned with `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`.
+- `ScenarioPayload.from_dict()` accepts `pitt.report-input.v1`; `ReportResult.to_dict()` emits `pitt.report-draft.v1`.
+- Added deterministic fallback, provenance labeling, secret-safe configuration, and an optional OpenAI-compatible path that is never called when `outbound_provider_authorized` is false.
+- Added `tests/ai/test_report_generator.py` and an example using the canonical seeded fixtures.
 
 ## Evidence
 
-- **Command or check:**
-- **Result:**
+- `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`: 21 tests passed on Patrick's branch.
+- The seeded input fixture produces the required deterministic fallback fixture exactly.
+- Failure paths for missing configuration, unauthorized outbound use, transport errors, timeouts, and malformed responses fall back safely.
 
 ## Limits Or Risks
 
-- API key has not been assigned. Build and test the deterministic fallback first.
-- Operating mode is human-in-the-loop: complete one small, verified slice, update this handoff, and wait for Patrick's next direction instead of expanding the lane independently.
-- Routing contract questions are for Patrick's operational review before any mapping, traffic, or stop-selection implementation is proposed.
+- The provider adapter currently accepts OpenAI-compatible chat completions only.
+- The timeout is fixed at 10 seconds and there is no retry; this is intentional for the demo because it fails safely to the deterministic path.
+- Do not add a provider key to Git. The seeded demo remains provider-free.
+
+## Integration Boundary
+
+| Consumer | Provided surface | Expected input |
+| --- | --- | --- |
+| Scenario engine | `ScenarioPayload.from_dict(input_dict)` | `pitt.report-input.v1` mapping |
+| UI | `ReportResult.to_dict()` | Reads status, provenance, narrative, review requirement, and deterministic facts |
+| Integration | `generate_report(scenario)` | Python import from `packages.ai` |
 
 ## Next Small Action
 
-- Implement a small provider-neutral report-drafting contract under `packages/ai/`, beginning with the deterministic fallback. Preserve supplied facts exactly and make no provider call when `outbound_provider_authorized` is `false`.
+- Integrate this module at one report seam in the demo shell; do not leave two competing report generators.
+- Run the JavaScript demo checks and the Python AI/report tests together before merging to `main`.

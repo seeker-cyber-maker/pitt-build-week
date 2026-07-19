@@ -47,3 +47,7 @@ python3 scripts/collate_handoffs.py
 ```
 
 This writes `CONTROL/COLLATION_REPORT.md`. It is a readout, not a merge. The integrator reviews the report, verifies the cited commands, then chooses what enters `main`.
+
+## Shared-File Rule
+
+Lane work stays inside its owned paths. `HANDOFFS/<lane>.md` belongs to that lane; `CONTROL/COLLATION_REPORT.md`, this workboard, and shared contracts belong to the integration lane. A contributor proposes shared-file changes in its handoff instead of editing the shared file directly.

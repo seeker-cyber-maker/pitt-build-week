@@ -17,7 +17,9 @@ const state = {
   dayIndex: -1,
   eventChoices: {},
   displayUnit: "metric",
-  displayCurrency: "CAD"
+  displayCurrency: "CAD",
+  routeClosed: false,
+  routeCloseReason: null
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -35,7 +37,7 @@ function render() {
     dot.setAttribute("aria-current", step === state.activeStep ? "step" : "false");
   });
 
-  document.querySelector("#review-button").disabled = !state.reviewed;
+  document.querySelector("#review-button").disabled = !state.routeClosed || !state.reviewed;
   document.querySelector("#confirm-button").disabled = !state.reviewed;
   document.querySelector("#review-toggle").checked = state.reviewed;
   document.querySelector("#confirmed-state").hidden = !state.confirmed;
@@ -58,6 +60,7 @@ function render() {
   renderMachineHandoff();
   renderDisplayControls();
   renderTripDetails();
+  renderTripWatchContext();
 }
 
 function goTo(step) {
@@ -125,6 +128,35 @@ function renderTripDetails() {
   document.querySelector("#stop-detail").textContent = `${formatDistance(trip.stop.distanceKm)} away · ${trip.stop.detourMinutes}-minute detour`;
   document.querySelector("#report-draft").textContent = createFallbackReport(trip, risk, recommendation)
     .replace(`${trip.stop.distanceKm} km`, state.displayUnit === "imperial" ? `${(trip.stop.distanceKm / 1.609344).toFixed(1)} mi` : `${trip.stop.distanceKm} km`);
+}
+
+function renderTripWatchContext() {
+  const summary = summarizeDeliveryProgress(state.dayIndex);
+  const currentItem = state.dayIndex >= 0 ? simulatedDayTimeline[state.dayIndex] : null;
+  const heading = document.querySelector("#trip-watch-heading");
+  const context = document.querySelector("#trip-watch-context");
+  const status = document.querySelector("#trip-watch-status");
+  const beginButton = document.querySelector("#begin-button");
+
+  if (state.routeClosed) {
+    const completedNormally = state.routeCloseReason === "completed";
+    heading.textContent = completedNormally ? "Trip Watch route completed" : "Trip Watch route closed early";
+    context.textContent = `${summary.completedLegs.length} of 5 simulated delivery legs recorded. Continue to driver review and generate the report from this same Trip Watch state.`;
+    status.textContent = completedNormally ? "Route completed" : "Closed early";
+    status.className = "status status-safe";
+    beginButton.disabled = false;
+    beginButton.textContent = completedNormally ? "Review completed route →" : "Review closed route →";
+    return;
+  }
+
+  heading.textContent = currentItem ? `Trip Watch: ${currentItem.title}` : "Route has not started";
+  context.textContent = currentItem
+    ? `${summary.completedLegs.length} of 5 simulated delivery legs recorded. Close the route early to begin review, or continue Trip Watch until it closes automatically.`
+    : "Start the simulated day in Trip Watch. Review and report generation stay locked until the route is closed.";
+  status.textContent = currentItem ? "Route in progress" : "Awaiting trip";
+  status.className = "status status-draft";
+  beginButton.disabled = true;
+  beginButton.textContent = "Close route in Trip Watch to review";
 }
 
 function routePoints(plan) {
@@ -214,6 +246,10 @@ function renderDayPlayback() {
       : state.dayIndex < 0
         ? "Start simulated day"
         : `Advance to ${nextItem.title}`;
+
+  const closeEarlyButton = document.querySelector("#close-route-early-button");
+  closeEarlyButton.hidden = state.dayIndex < 0 || state.routeClosed;
+  closeEarlyButton.disabled = hasUnresolvedEvent;
 }
 
 function renderDeliveryReportSummary() {
@@ -309,6 +345,7 @@ function renderMap() {
 renderPlanning();
 
 document.querySelector("#begin-button").addEventListener("click", () => {
+  if (!state.routeClosed) return;
   state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
   goTo(2);
 });
@@ -364,7 +401,20 @@ document.querySelector("#rebuild-plan-button").addEventListener("click", () => {
 document.querySelector("#day-advance-button").addEventListener("click", () => {
   if (state.dayIndex + 1 >= simulatedDayTimeline.length) return;
   state.dayIndex += 1;
+  if (state.dayIndex === simulatedDayTimeline.length - 1) {
+    state.routeClosed = true;
+    state.routeCloseReason = "completed";
+    state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
+  }
   render();
+});
+document.querySelector("#close-route-early-button").addEventListener("click", () => {
+  if (state.dayIndex < 0 || state.routeClosed) return;
+  state.routeClosed = true;
+  state.routeCloseReason = "early";
+  state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
+  render();
+  goTo(2);
 });
 document.querySelector("#recalculate-route-button").addEventListener("click", () => {
   const currentItem = simulatedDayTimeline[state.dayIndex];

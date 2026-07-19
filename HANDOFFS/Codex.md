@@ -1,6 +1,6 @@
 # Harness Handoff: Codex
 
-- **Status:** in progress
+- **Status:** active correction in progress
 - **Lane:** Integration
 - **Branch/worktree:** `harness/codex-integration`
 - **Started:** 2026-07-18
@@ -23,6 +23,7 @@
 - Added a driver-controlled seeded day playback: five delivery legs, a noon price spike, a 3 PM price drop, explicit keep-or-recalculate choices, and a final delivery-outcome summary. The price events modify only the local planning preview and retain the no-live-data boundary.
 - Added display-only metric/imperial and CAD/USD local-money controls. Distances and fuel volumes convert between physical units; currency values keep their seeded local numeric value and only change label, with an explicit no-exchange-rate disclosure.
 - Added a compact `pitt.trip_handoff.v1` Lua-table machine handoff to the final report. It includes route, refuel, completed leg data, units, and review state; the copy action remains local and the payload explicitly records `external_action = false`.
+- Diagnosed a public toggle failure as stale GitHub Pages module caching: newer HTML had controls while an older `app.js` lacked their listeners. The module now uses a versioned query string; the deployed controls were clicked and verified live.
 
 ## Evidence
 
@@ -41,5 +42,5 @@
 
 ## Next Small Action
 
-- Re-record or update the short demo walkthrough to include the local planning preview before Trip Watch.
-- Keep the current `app/` demo shell as the one visible flow. Do not attach real map, station, or routing feeds for this Build Week submission.
+- **Current correction:** make the upper seeded Trip Watch the authoritative route state. The lower review/report flow must display the current Trip Watch context and remain unavailable until the driver closes the route early or the seeded route completes normally.
+- **Acceptance:** an early close explicitly unlocks review; normal completion unlocks it automatically; the final report and Lua handoff carry the same Trip Watch leg summary. Keep the seeded/no-live-data boundary.

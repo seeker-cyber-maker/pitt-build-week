@@ -60,7 +60,7 @@
         <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can compare a recalculation with keeping the current route. Nothing runs automatically.</p>
         <div class="day-layout">
           <div class="panel day-timeline-panel"><h3>Trip watch</h3><div class="day-timeline" id="day-timeline"></div></div>
-          <div class="panel day-event-panel"><p class="eyebrow" id="day-current-time">Before departure</p><h3 id="day-current-title">Ready to start the simulated day</h3><p id="day-current-detail"></p><div class="event-choice" id="event-choice" hidden><p class="impact-analysis" id="impact-analysis"></p><div class="choice-actions"><button class="button primary" id="recalculate-route-button" type="button">Recalculate route</button><button class="button secondary" id="keep-route-button" type="button">Keep current route</button></div></div><p class="day-decision" id="day-decision" role="status" hidden></p><button class="button secondary" id="day-advance-button" type="button">Start simulated day</button></div>
+          <div class="panel day-event-panel"><p class="eyebrow" id="day-current-time">Before departure</p><h3 id="day-current-title">Ready to start the simulated day</h3><p id="day-current-detail"></p><div class="event-choice" id="event-choice" hidden><p class="impact-analysis" id="impact-analysis"></p><div class="choice-actions"><button class="button primary" id="recalculate-route-button" type="button">Recalculate route</button><button class="button secondary" id="keep-route-button" type="button">Keep current route</button></div></div><p class="day-decision" id="day-decision" role="status" hidden></p><div class="choice-actions day-route-actions"><button class="button secondary" id="day-advance-button" type="button">Start simulated day</button><button class="button secondary" id="close-route-early-button" type="button" hidden>Close route early</button></div></div>
         </div>
       </section>
 
@@ -71,7 +71,7 @@
       </nav>
 
       <section class="screen" data-step="1">
-        <div class="screen-heading"><div><p class="eyebrow">Seeded trip</p><h2>Refrigerated delivery is underway</h2></div><span class="status status-safe">Seeded demo</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">Trip Watch continuation</p><h2 id="trip-watch-heading">Route has not started</h2><p class="planning-intro" id="trip-watch-context"></p></div><span class="status status-safe" id="trip-watch-status">Awaiting trip</span></div>
         <div class="trip-grid">
           <article class="panel trip-card"><span>Trip</span><strong id="trip-id"></strong><p><span id="cargo"></span> · <span id="driver"></span></p></article>
           <article class="panel trip-card"><span>Destination</span><strong id="destination"></strong><p id="route"></p></article>
@@ -117,6 +117,6 @@
       </section>
     </main>
     <footer>Prototype boundary: seeded local scenario · no GPS, mapping, telematics, pricing, or vehicle controls.</footer>
-    <script type="module" src="./app.js?v=machine-handoff-20260719"></script>
+    <script type="module" src="./app.js?v=trip-watch-authority-20260719"></script>
   </body>
 </html>

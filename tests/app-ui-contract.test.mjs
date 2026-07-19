@@ -72,7 +72,7 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(markup, /exchange rate/i);
   assert.match(app, /formatFuelPrice/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=machine-handoff-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=trip-watch-authority-20260719"/);
 });
 
 test("report includes a review-gated Lua machine handoff", async () => {
@@ -87,4 +87,18 @@ test("report includes a review-gated Lua machine handoff", async () => {
   assert.match(app, /driver_review_required/);
   assert.match(app, /external_action = false/);
   assert.match(app, /navigator\.clipboard\.writeText/);
+});
+
+test("Trip Watch is the route authority before review can be opened", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /id="close-route-early-button"/);
+  assert.match(markup, /id="trip-watch-context"/);
+  assert.match(app, /routeClosed/);
+  assert.match(app, /routeCloseReason = "completed"/);
+  assert.match(app, /routeCloseReason = "early"/);
+  assert.match(app, /if \(!state\.routeClosed\) return/);
 });

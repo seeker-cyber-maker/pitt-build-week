@@ -111,12 +111,12 @@
         <div class="screen-heading"><div><p class="eyebrow">Reviewable output</p><h2>Trip exception report draft</h2></div><span class="status status-draft">Fallback draft</span></div>
         <div class="report-layout">
           <article class="panel report"><div class="report-meta"><span>Source</span><b>Local calculation</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
-          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><div class="delivery-report-summary" id="delivery-report-summary"></div><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded. No external action was taken.</p></aside>
+          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><div class="delivery-report-summary" id="delivery-report-summary"></div><details class="machine-handoff" open><summary>Machine handoff</summary><p>Lua-table shorthand for a later approved workflow. It is local only and does not trigger any action.</p><pre id="machine-handoff-output"></pre><button class="button secondary" id="copy-machine-handoff" type="button">Copy machine handoff</button><p class="machine-copy-status" id="machine-copy-status" role="status" hidden></p></details><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded. No external action was taken.</p></aside>
         </div>
         <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
       </section>
     </main>
     <footer>Prototype boundary: seeded local scenario · no GPS, mapping, telematics, pricing, or vehicle controls.</footer>
-    <script type="module" src="./app.js?v=unit-display-20260719"></script>
+    <script type="module" src="./app.js?v=machine-handoff-20260719"></script>
   </body>
 </html>

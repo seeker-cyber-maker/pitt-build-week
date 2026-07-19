@@ -55,6 +55,7 @@ function render() {
   renderMap();
   renderDayPlayback();
   renderDeliveryReportSummary();
+  renderMachineHandoff();
   renderDisplayControls();
   renderTripDetails();
 }
@@ -227,6 +228,46 @@ function renderDeliveryReportSummary() {
   destination.innerHTML = `<strong>Delivery outcomes</strong><br>${summary.completedLegs.length} of 5 simulated delivery legs · ${formatDistance(summary.completedDistanceKm)}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
 }
 
+function machineToken(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+}
+
+function machineDistance(value) {
+  return state.displayUnit === "imperial" ? value / 1.609344 : value;
+}
+
+function machineFuelPrice(value) {
+  return state.displayUnit === "imperial" ? value * 3.78541 : value;
+}
+
+function createMachineHandoff() {
+  const summary = summarizeDeliveryProgress(state.dayIndex);
+  const refuel = planning.recommended.refuel;
+  const distanceUnit = state.displayUnit === "imperial" ? "mi" : "km";
+  const volumeUnit = state.displayUnit === "imperial" ? "us_gal" : "litre";
+  const legs = summary.completedLegs.map((leg) => `    { id = "${machineToken(leg.title)}", status = "${leg.delivery.status}", proof = "${machineToken(leg.delivery.proof)}" },`);
+  return [
+    "return {",
+    "  schema = \"pitt.trip_handoff.v1\",",
+    "  mode = \"seeded_local_demo\",",
+    `  trip_id = \"${trip.id}\",`,
+    `  review_state = \"${state.confirmed ? "confirmed_local_only" : "driver_review_required"}\",`,
+    "  external_action = false,",
+    `  units = { distance = \"${distanceUnit}\", volume = \"${volumeUnit}\", money = \"${state.displayCurrency}\", money_basis = \"seeded_local_no_conversion\" },`,
+    `  refuel = { station = \"${refuel.at.id}\", price = ${machineFuelPrice(refuel.at.pricePerLitreCad).toFixed(3)}, price_unit = \"${state.displayCurrency}_per_${volumeUnit}\", estimated_cost = ${refuel.estimatedPlanCostCad.toFixed(2)} },`,
+    `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, completed_legs = ${summary.completedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)} },`,
+    "  delivery_legs = {",
+    ...legs,
+    "  },",
+    `  next_action = \"${state.confirmed ? "await_approved_downstream_workflow" : "obtain_driver_review"}\"`,
+    "}"
+  ].join("\n");
+}
+
+function renderMachineHandoff() {
+  document.querySelector("#machine-handoff-output").textContent = createMachineHandoff();
+}
+
 function renderMap() {
   const activePlan = planning[state.mapMode];
   const recommendedPoints = routePoints(planning.recommended);
@@ -282,6 +323,16 @@ document.querySelector("#review-button").addEventListener("click", () => {
 document.querySelector("#confirm-button").addEventListener("click", () => {
   state.confirmed = true;
   render();
+});
+document.querySelector("#copy-machine-handoff").addEventListener("click", async () => {
+  const status = document.querySelector("#machine-copy-status");
+  try {
+    await navigator.clipboard.writeText(document.querySelector("#machine-handoff-output").textContent);
+    status.textContent = "Machine handoff copied. No external workflow was started.";
+  } catch {
+    status.textContent = "Copy permission was unavailable; select the local handoff text instead.";
+  }
+  status.hidden = false;
 });
 document.querySelectorAll("[data-map-mode]").forEach((button) => {
   button.addEventListener("click", () => {

@@ -14,6 +14,7 @@ A refrigerated delivery is underway. A simulated delivery ledger ranks its stops
 - Deterministic fuel-reserve and deadline-risk calculations.
 - A recommendation with plain reasons, confidence/limitations, and alternatives.
 - A driver review/confirm step; no automatic action.
+- A copyable, Lua-table handoff that can be consumed by a later approved workflow. It is local-only, clearly review-gated, and has `external_action = false`.
 - A generated report draft from an approved model endpoint, with fallback deterministic text if the endpoint is unavailable.
 - A clean, no-login presentation path.
 

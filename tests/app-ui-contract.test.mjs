@@ -72,5 +72,19 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(markup, /exchange rate/i);
   assert.match(app, /formatFuelPrice/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=unit-display-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=machine-handoff-20260719"/);
+});
+
+test("report includes a review-gated Lua machine handoff", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /id="machine-handoff-output"/);
+  assert.match(markup, /id="copy-machine-handoff"/);
+  assert.match(app, /pitt\.trip_handoff\.v1/);
+  assert.match(app, /driver_review_required/);
+  assert.match(app, /external_action = false/);
+  assert.match(app, /navigator\.clipboard\.writeText/);
 });

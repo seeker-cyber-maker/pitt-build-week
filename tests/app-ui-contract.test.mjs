@@ -72,7 +72,7 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(markup, /exchange rate/i);
   assert.match(app, /formatFuelPrice/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=trip-watch-authority-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=early-close-disposition-20260719"/);
 });
 
 test("report includes a review-gated Lua machine handoff", async () => {

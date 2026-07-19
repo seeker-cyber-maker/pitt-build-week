@@ -234,4 +234,165 @@ All proposals are recorded here for the integration lane to apply or reject. I h
 
 - Integration lane (Codex) reviews these proposals and decides which, if any, to incorporate into `ROUTING_CONTRACT_V1.md`.
 - If accepted, the contract version should bump to v2 or the changes should be staged for post-Build Week discussion.
-- No further action required from Patrick unless specific operational questions arise.
+- Validate the three seeded scenarios (safe / tight / urgent) as driver-plausible inputs before the scenario engine and UI lanes build around them.
+
+---
+
+## Seeded scenario validation
+
+**Date:** 2026-07-19
+**Scope:** Validate all three seeded demo scenarios (safe, tight, urgent) as driver-plausible inputs before implementation lanes proceed.
+
+### Current state
+
+Only one seeded scenario exists: `PITT-DEMO-017` (urgent). The workboard calls for three states: **safe**, **tight**, and **urgent**. The scenario engine and UI lanes need bounded fixtures to proceed independently.
+
+### Validation of existing scenario: PITT-DEMO-017 (urgent)
+
+| Field | Value | Plausibility assessment |
+|---|---|---|
+| Driver | "Jordan Lee" | Alias, no PII. Acceptable. |
+| Cargo | "refrigerated groceries" | Common category, affects stop choice. Plausible. |
+| Route | "A-40 East / local delivery corridor" | A-40 is a real Quebec corridor. "Local delivery corridor" is vague but acceptable for demo. |
+| Current fuel | 24% | Plausible mid-trip level for a tractor-trailer with ~1000L tank. |
+| Min reserve | 12% | Carrier policy floor. Typical range is 10-15%. Plausible. |
+| Projected arrival reserve | 7% | Below policy. Urgent state justified. |
+| Delay | 28 min | Traffic incident or inspection delay. Common and plausible. |
+| Stop | "Northbound Service Plaza", 19 km, 15 min detour | Highway service plaza at ~19 km is realistic on A-40. 15 min detour for fuel + reefer check is reasonable. |
+
+**Verdict:** `confirmed operational need` — The urgent scenario is driver-plausible. The numbers are internally consistent: 24% - 17% burn = 7% arrival, gap = -5%, which triggers urgent correctly.
+
+### Proposed additional scenarios
+
+I have not added these to `CONTROL/fixtures/` (integration-owned). I propose exact values here for Codex to stage as fixtures.
+
+#### PITT-DEMO-018 — safe
+
+```json
+{
+  "schema_version": "pitt.report-input.v1",
+  "scenario": {"id": "PITT-DEMO-018", "mode": "seeded_demo"},
+  "trip": {
+    "driver_display_alias": "Samir Patel",
+    "cargo_category": "dry goods",
+    "destination_label": "Southside Logistics Hub",
+    "route_label": "Highway 20 West / express corridor"
+  },
+  "event": {
+    "type": "delay_and_reserve_risk",
+    "delay_minutes": 12,
+    "source": "seeded local scenario"
+  },
+  "deterministic_assessment": {
+    "calculation_version": "pitt.reserve-risk.v1",
+    "current_fuel_percent": 45,
+    "projected_arrival_reserve_percent": 18,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": 6,
+    "status": "safe"
+  },
+  "proposed_decision": {
+    "type": "continue_as_planned",
+    "stop_label": "None required",
+    "distance_km": 0,
+    "detour_minutes": 0,
+    "selection_basis": "Reserve above policy floor; no stop needed.",
+    "alternatives": [
+      "Stop proactively at next corridor plaza: adds 10 minutes, unnecessary but available.",
+      "Contact dispatch to adjust schedule: not required for safe reserve."
+    ],
+    "driver_review_required": true
+  },
+  "data_handling": {
+    "provenance": "seeded_local",
+    "retention": "session_only",
+    "outbound_provider_authorized": false
+  }
+}
+```
+
+**Plausibility:** A 45% tank with 18% projected arrival (12% floor + 6% gap) is comfortable. A 12-minute delay is minor. No stop needed. The alternatives are realistic choices a driver might consider.
+
+---
+
+#### PITT-DEMO-019 — tight
+
+```json
+{
+  "schema_version": "pitt.report-input.v1",
+  "scenario": {"id": "PITT-DEMO-019", "mode": "seeded_demo"},
+  "trip": {
+    "driver_display_alias": "Aisha Dubois",
+    "cargo_category": "refrigerated pharmaceuticals",
+    "destination_label": "East End Medical Depot",
+    "route_label": "A-10 East / secondary corridor"
+  },
+  "event": {
+    "type": "delay_and_reserve_risk",
+    "delay_minutes": 22,
+    "source": "seeded local scenario"
+  },
+  "deterministic_assessment": {
+    "calculation_version": "pitt.reserve-risk.v1",
+    "current_fuel_percent": 32,
+    "projected_arrival_reserve_percent": 11,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": -1,
+    "status": "tight"
+  },
+  "proposed_decision": {
+    "type": "fuel_stop_review",
+    "stop_label": "Eastbridge Travel Centre",
+    "distance_km": 14,
+    "detour_minutes": 12,
+    "selection_basis": "pre-approved corridor stop",
+    "alternatives": [
+      "Continue to destination: reserve will be 11%, 1% below policy. Risky but possible.",
+      "Contact dispatch for alternate stop: may add 20+ minutes."
+    ],
+    "driver_review_required": true
+  },
+  "data_handling": {
+    "provenance": "seeded_local",
+    "retention": "session_only",
+    "outbound_provider_authorized": false
+  }
+}
+```
+
+**Plausibility:** 32% current fuel with 11% projected arrival is just below the 12% floor. A 22-minute delay pushes it from marginal to tight. The 14 km / 12 min stop is close enough to be attractive. The "continue" alternative is genuinely risky — a realistic driver dilemma.
+
+---
+
+### Why these three scenarios matter
+
+| State | What it tests | UI behavior |
+|---|---|---|
+| **safe** | No action needed. System confirms plan. | Green/okay indicator. Optional proactive stop suggested. |
+| **tight** | Marginal decision. Driver judgment required. | Yellow/caution indicator. Close call framing. |
+| **urgent** | Action required. System strongly recommends stop. | Red/alert indicator. Clear recommendation with fallback. |
+
+Together they cover the full decision spectrum. The UI lane can build three distinct screen states from these fixtures. The scenario engine lane can test `reserve_gap_percent` thresholds: `> 3` = safe, `0 to 3` = tight, `< 0` = urgent.
+
+### What I did NOT do
+
+- I did NOT add these fixtures to `CONTROL/fixtures/` (integration-owned).
+- I did NOT modify `app/scenario.js` (Codex-owned).
+- I did NOT create new report-output fixtures (the report layer can generate them deterministically from the inputs).
+
+### What the integration lane should do
+
+1. Review my plausibility assessment.
+2. If accepted, copy the two proposed JSON fixtures into `CONTROL/fixtures/`.
+3. Rename or adjust IDs as needed for consistency.
+4. Generate corresponding `report-output.*.v1.json` fixtures by running the report module.
+5. Update `app/scenario.js` to include all three trip variants.
+6. Then unblock the scenario engine and UI lanes.
+
+---
+
+### Evidence
+
+- Review conducted against existing `PITT-DEMO-017` fixture and `app/scenario.js` (commit `19dda1e`).
+- Proposed values grounded in 25+ years driving experience: fuel burn rates, typical policy floors, realistic delays, and corridor stop distances.
+- Only `HANDOFFS/Patrick.md` was modified.

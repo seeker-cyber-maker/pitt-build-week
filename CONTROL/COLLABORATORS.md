@@ -3,9 +3,10 @@
 ## Patrick Simard (`psimardgit`)
 
 - **Repository role:** Write collaborator.
-- **Assigned lane:** AI/report boundary.
-- **Branch:** `harness/patrick-ai-report`.
-- **Owned paths:** `packages/ai/`, `tests/ai/`, `.env.example`, `HANDOFFS/Patrick.md`.
+- **Completed lane:** AI/report boundary, merged into `harness/codex-integration`.
+- **Next scoped task:** Routing-contract operational review. This is a human-in-the-loop design review, not a routing implementation.
+- **Suggested branch:** `harness/patrick-routing-review`, based on `origin/harness/codex-integration`.
+- **Owned paths for the review:** `HANDOFFS/Patrick.md` only. Propose shared-contract edits there; do not edit shared contracts directly.
 - **Do not modify:** UI, scenario engine, integration files, repository settings, deployment, or shared scope documents.
 - **Operational steering:** Read `CONTROL/OPERATIONAL_DESIGN_INPUTS.md` before defining the provider/report contract. The report must remain reviewable, provenance-labeled, and usable when the provider is unavailable.
 - **Domain input:** Patrick is the primary practical input for future route/mapping requirements. Capture confirmed observations as explicit acceptance criteria; do not turn operational input into unverified live-routing claims.

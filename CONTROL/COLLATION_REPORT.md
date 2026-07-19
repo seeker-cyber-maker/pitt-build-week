@@ -7,7 +7,7 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 | Harness | Status |
 | --- | --- |
 | Codex | ** ready for integration |
-| Patrick | ** ready for integration |
+| Patrick | ** complete |
 
 ---
 
@@ -48,7 +48,7 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 
 # Harness Handoff: Patrick
 
-- **Status:** ready for integration
+- **Status:** complete
 - **Lane:** AI/report boundary
 - **Branch/worktree:** `harness/patrick-ai-report`
 - **Started:** 2026-07-18
@@ -83,5 +83,5 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 
 ## Next Small Action
 
-- Integrate this module at one report seam in the demo shell; do not leave two competing report generators.
-- Run the JavaScript demo checks and the Python AI/report tests together before merging to `main`.
+- The integration lane will connect this module at one report seam in the demo shell; it must not leave two competing report generators.
+- If assigned the routing review, start a new `harness/patrick-routing-review` branch from `origin/harness/codex-integration` and append the review to this handoff. Do not modify shared contracts directly.

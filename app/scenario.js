@@ -11,7 +11,7 @@ export const seededTrips = Object.freeze({
     minimumReservePercent: 12,
     projectedFuelBurnPercent: 27,
     delayMinutes: 12,
-    stop: { name: "No fuel stop required", distanceKm: 0, detourMinutes: 0, status: "Reserve remains above the seeded policy floor" }
+    stop: { name: "No fuel stop required", distanceKm: 0, detourMinutes: 0, status: "Reserve remains above the policy floor" }
   }),
   tight: Object.freeze({
     id: "PITT-DEMO-019",
@@ -25,7 +25,7 @@ export const seededTrips = Object.freeze({
     minimumReservePercent: 12,
     projectedFuelBurnPercent: 20,
     delayMinutes: 22,
-    stop: { name: "Eastbridge Travel Centre", distanceKm: 14, detourMinutes: 12, status: "Pre-approved seeded corridor stop" }
+    stop: { name: "Eastbridge Travel Centre", distanceKm: 14, detourMinutes: 12, status: "Pre-approved corridor stop" }
   }),
   urgent: Object.freeze({
     id: "PITT-DEMO-017",
@@ -39,7 +39,7 @@ export const seededTrips = Object.freeze({
     minimumReservePercent: 12,
     projectedFuelBurnPercent: 17,
     delayMinutes: 28,
-    stop: { name: "Northbound Service Plaza", distanceKm: 19, detourMinutes: 15, status: "Pre-approved demo stop" }
+    stop: { name: "Northbound Service Plaza", distanceKm: 19, detourMinutes: 15, status: "Pre-approved corridor stop" }
   })
 });
 
@@ -100,9 +100,11 @@ export function createFallbackReport(trip, risk = calculateRisk(trip), recommend
   return [
     `Trip exception draft - ${trip.id}`,
     `${trip.driver} is delivering ${trip.cargo} to ${trip.destination}.`,
-    `A seeded ${trip.delayMinutes}-minute delay changes projected fuel reserve to ${risk.projectedReservePercent}% (policy floor: ${trip.minimumReservePercent}%).`,
+    `A ${trip.delayMinutes}-minute delay changes projected fuel reserve to ${risk.projectedReservePercent}% (policy floor: ${trip.minimumReservePercent}%).`,
     `Recommended review action: stop at ${trip.stop.name}, ${trip.stop.distanceKm} km away, with a planned ${trip.stop.detourMinutes}-minute detour.`,
+    `Selection basis: pre-approved planned-corridor stop.`,
+    `Alternatives considered: ${recommendation.alternatives.join(" ")}`,
     `Driver review status: pending confirmation.`,
-    `Source: deterministic local demo fallback. ${recommendation.confidence}`
+    `Source: local calculation from the displayed fuel, delay, and carrier policy. No live traffic, weather, station-status, or dispatch data is used.`
   ].join("\n");
 }

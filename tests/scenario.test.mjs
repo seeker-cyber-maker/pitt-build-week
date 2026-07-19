@@ -43,5 +43,5 @@ test("recommendation stays within the demo boundary", () => {
 test("fallback report carries provenance and needs driver review", () => {
   const report = createFallbackReport(demoTrip);
   assert.match(report, /Driver review status: pending confirmation/);
-  assert.match(report, /deterministic local demo fallback/i);
+  assert.match(report, /Source: local calculation from the displayed fuel, delay, and carrier policy/i);
 });

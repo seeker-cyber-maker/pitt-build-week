@@ -285,6 +285,37 @@ All proposals are recorded here for the integration lane to apply or reject. I h
 
 ---
 
+## Driver demo walkthrough
+
+**Date:** 2026-07-19
+**Branch:** `harness/patrick-demo-walkthrough`
+**Scope:** Driver-facing usability review of the three-screen local demo. No code or contract edits.
+**Method:** Local walkthrough of trip watch, driver review, report draft, and confirmation.
+
+### Accepted integration findings
+
+- Replaced ambiguous reserve wording with an explicit below-policy statement and a signed gap (`-5%`).
+- Replaced construction jargon in the stop explanation, report draft, provenance label, and confirmation copy with plain driver-facing language.
+- Added selection basis and considered alternatives to the report draft.
+- Made forward progress steps visibly unavailable until the corresponding primary action unlocks them.
+
+### Integration note
+
+The walkthrough branch was based on `35b1bef` and therefore predates later scenario coverage. Its findings were reviewed manually rather than merged wholesale, preserving the already-integrated safe/tight/urgent scenario evidence. Integration added a regression check for stale UI selectors after finding the renderer referenced a non-existent checkbox id.
+
+### Retained boundaries
+
+- The demo badge, footer, and local-data limitations remain visible because the submission must not imply live routing, traffic, weather, fuel, or dispatch integration.
+- The driver remains the decision-maker; no interaction changes the planned corridor or sends an external action.
+
+### Evidence
+
+- `npm test`: 8/8 passed after integration.
+- `python3 -m unittest discover -s tests/ai -p 'test_*.py' -v`: 24/24 passed after integration.
+- Browser walkthrough completed all three steps and confirmed the local review without console errors.
+
+---
+
 ### Next Small Action
 
 - Integration lane (Codex) reviews these proposals and decides which, if any, to incorporate into `ROUTING_CONTRACT_V1.md`.

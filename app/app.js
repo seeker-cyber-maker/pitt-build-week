@@ -6,6 +6,7 @@ const recommendation = createRecommendation(trip, risk);
 
 const state = {
   activeStep: 1,
+  highestUnlockedStep: 1,
   reviewed: false,
   confirmed: false
 };
@@ -21,15 +22,18 @@ function render() {
     const step = Number(dot.dataset.progress);
     dot.classList.toggle("is-active", step === state.activeStep);
     dot.classList.toggle("is-complete", step < state.activeStep);
+    dot.disabled = step > state.highestUnlockedStep;
+    dot.setAttribute("aria-current", step === state.activeStep ? "step" : "false");
   });
 
   document.querySelector("#review-button").disabled = !state.reviewed;
   document.querySelector("#confirm-button").disabled = !state.reviewed;
-  document.querySelector("#driver-review").checked = state.reviewed;
+  document.querySelector("#review-toggle").checked = state.reviewed;
   document.querySelector("#confirmed-state").hidden = !state.confirmed;
 }
 
 function goTo(step) {
+  if (step > state.highestUnlockedStep) return;
   state.activeStep = step;
   render();
   document.querySelector("main").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -46,18 +50,24 @@ document.querySelector("#fuel-now").textContent = `${trip.fuelPercent}%`;
 document.querySelector("#reserve-floor").textContent = `${trip.minimumReservePercent}%`;
 document.querySelector("#delay").textContent = formatMinutes(trip.delayMinutes);
 document.querySelector("#projected-reserve").textContent = `${risk.projectedReservePercent}%`;
-document.querySelector("#reserve-gap").textContent = `${Math.abs(risk.reserveGapPercent)}% below floor`;
+document.querySelector("#reserve-gap").textContent = `${Math.abs(risk.reserveGapPercent)}% below policy floor (gap: ${risk.reserveGapPercent}%)`;
 document.querySelector("#stop-name").textContent = trip.stop.name;
 document.querySelector("#stop-detail").textContent = `${trip.stop.distanceKm} km away · ${trip.stop.detourMinutes}-minute detour`;
 document.querySelector("#recommendation-summary").textContent = recommendation.summary;
 document.querySelector("#report-draft").textContent = createFallbackReport(trip, risk, recommendation);
 
-document.querySelector("#begin-button").addEventListener("click", () => goTo(2));
+document.querySelector("#begin-button").addEventListener("click", () => {
+  state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
+  goTo(2);
+});
 document.querySelector("#review-toggle").addEventListener("change", (event) => {
   state.reviewed = event.target.checked;
   render();
 });
-document.querySelector("#review-button").addEventListener("click", () => goTo(3));
+document.querySelector("#review-button").addEventListener("click", () => {
+  state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 3);
+  goTo(3);
+});
 document.querySelector("#confirm-button").addEventListener("click", () => {
   state.confirmed = true;
   render();

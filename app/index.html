@@ -35,11 +35,11 @@
           <article class="panel metric"><span>Delay</span><strong id="delay"></strong><small>Seeded exception</small></article>
           <article class="panel metric"><span>Planned arrival</span><strong id="planned-arrival"></strong><small>Departed <span id="departure"></span></small></article>
         </div>
-        <div class="action-row"><button class="button primary" id="begin-button" type="button">Review reserve risk <span>→</span></button></div>
+        <div class="action-row"><button class="button primary" id="begin-button" type="button">Check fuel reserve <span>→</span></button></div>
       </section>
 
       <section class="screen" data-step="2" hidden>
-        <div class="screen-heading"><div><p class="eyebrow">Deterministic alert</p><h2>Projected reserve crosses the policy floor</h2></div><span class="status status-urgent">Review required</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">Deterministic alert</p><h2>Projected reserve falls below the policy floor</h2></div><span class="status status-urgent">Review required</span></div>
         <div class="alert-layout">
           <article class="risk-card">
             <p>Projected arrival reserve</p><strong id="projected-reserve"></strong><span id="reserve-gap"></span>
@@ -52,8 +52,8 @@
             <p id="stop-detail"></p>
             <p id="recommendation-summary"></p>
             <ul>
-              <li>Seeded delay places the current plan below the reserve policy.</li>
-              <li>Pre-approved stop is the demonstration option supplied by the scenario.</li>
+              <li>The current delay places the planned arrival below the reserve policy.</li>
+              <li>This stop is on the planned corridor and pre-approved for the demonstration.</li>
               <li>Driver review determines the next action.</li>
             </ul>
           </article>
@@ -65,8 +65,8 @@
       <section class="screen" data-step="3" hidden>
         <div class="screen-heading"><div><p class="eyebrow">Reviewable output</p><h2>Trip exception report draft</h2></div><span class="status status-draft">Fallback draft</span></div>
         <div class="report-layout">
-          <article class="panel report"><div class="report-meta"><span>Source</span><b>Deterministic local fallback</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
-          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded for this local demo. No external action was taken.</p></aside>
+          <article class="panel report"><div class="report-meta"><span>Source</span><b>Local calculation</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
+          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded. No external action was taken.</p></aside>
         </div>
         <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
       </section>

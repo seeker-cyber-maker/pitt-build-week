@@ -16,6 +16,7 @@ test("recommendation stays within the demo boundary", () => {
   const recommendation = createRecommendation(demoTrip);
   assert.match(recommendation.title, /Northbound Service Plaza/);
   assert.match(recommendation.reasons.join(" "), /no live station, traffic, or price feed/i);
+  assert.doesNotMatch(JSON.stringify(recommendation), /needed now|contact dispatch|live route/i);
 });
 
 test("fallback report carries provenance and needs driver review", () => {

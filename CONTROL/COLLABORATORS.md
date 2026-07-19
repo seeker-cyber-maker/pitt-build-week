@@ -5,7 +5,7 @@
 - **Repository role:** Write collaborator.
 - **Completed lane:** AI/report boundary, merged into `harness/codex-integration`.
 - **Completed review:** Routing-contract operational review, merged into `harness/codex-integration`.
-- **Next scoped task:** None assigned. Future operational questions are captured in Patrick's handoff before another bounded review is requested.
+- **Next scoped task:** Driver demo walkthrough. This is a human-in-the-loop usability review with findings recorded in `HANDOFFS/Patrick.md` only.
 - **Do not modify:** UI, scenario engine, integration files, repository settings, deployment, or shared scope documents.
 - **Operational steering:** Read `CONTROL/OPERATIONAL_DESIGN_INPUTS.md` before defining the provider/report contract. The report must remain reviewable, provenance-labeled, and usable when the provider is unavailable.
 - **Domain input:** Patrick is the primary practical input for future route/mapping requirements. Capture confirmed observations as explicit acceptance criteria; do not turn operational input into unverified live-routing claims.

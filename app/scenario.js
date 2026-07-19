@@ -3,7 +3,7 @@ export const demoTrip = Object.freeze({
   driver: "Jordan Lee",
   cargo: "Refrigerated groceries",
   destination: "North Market Distribution Centre",
-  route: "A-40 East / local delivery corridor",
+  plannedCorridor: "A-40 East / local delivery corridor",
   departure: "08:10",
   plannedArrival: "10:40",
   fuelPercent: 24,
@@ -32,7 +32,7 @@ export function calculateRisk(trip) {
 }
 
 export function createRecommendation(trip, risk = calculateRisk(trip)) {
-  const urgency = risk.reserveState === "urgent" ? "Fuel stop needed now" : "Fuel stop recommended";
+  const urgency = risk.reserveState === "urgent" ? "Fuel stop review required" : "Fuel stop recommended";
 
   return {
     urgency,
@@ -45,9 +45,9 @@ export function createRecommendation(trip, risk = calculateRisk(trip)) {
     ],
     alternatives: [
       "Continue without stopping: projected reserve remains below policy.",
-      "Contact dispatch for a different approved stop: review needed before changing the plan."
+      "Review a different approved stop: driver confirmation is required before changing the plan."
     ],
-    confidence: "High for this seeded arithmetic; not a live route prediction."
+    confidence: "Seeded arithmetic only; not a live corridor prediction."
   };
 }
 

@@ -16,7 +16,7 @@
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">Trip Intelligence &amp; Transit Triage</p>
         <h1 id="page-title">Keep the trip visible. Keep the driver in control.</h1>
-        <p class="lede">A refrigerated delivery is delayed. PITT turns a fuel-reserve risk into a reviewable plan and a report draft, without controlling the truck or using live fleet data.</p>
+        <p class="lede">A refrigerated delivery is delayed. PITT turns a fuel-reserve risk into a reviewable option and a report draft, without controlling the truck or using live fleet data.</p>
       </section>
 
       <nav class="progress" aria-label="Demo progress">
@@ -26,7 +26,7 @@
       </nav>
 
       <section class="screen" data-step="1">
-        <div class="screen-heading"><div><p class="eyebrow">Seeded trip</p><h2>Refrigerated delivery is underway</h2></div><span class="status status-safe">Monitoring</span></div>
+        <div class="screen-heading"><div><p class="eyebrow">Seeded trip</p><h2>Refrigerated delivery is underway</h2></div><span class="status status-safe">Seeded demo</span></div>
         <div class="trip-grid">
           <article class="panel trip-card"><span>Trip</span><strong id="trip-id"></strong><p><span id="cargo"></span> · <span id="driver"></span></p></article>
           <article class="panel trip-card"><span>Destination</span><strong id="destination"></strong><p id="route"></p></article>
@@ -44,7 +44,7 @@
           <article class="risk-card">
             <p>Projected arrival reserve</p><strong id="projected-reserve"></strong><span id="reserve-gap"></span>
             <div class="fuel-bar"><i></i></div>
-            <small>Calculated from seeded fuel, burn, delay, and reserve policy. Not a live route forecast.</small>
+            <small>Calculated from seeded fuel, burn, delay, and reserve policy. Not a live corridor forecast.</small>
           </article>
           <article class="panel recommendation">
             <p class="eyebrow">Recommended review action</p>
@@ -52,9 +52,9 @@
             <p id="stop-detail"></p>
             <p id="recommendation-summary"></p>
             <ul>
-              <li>Seeded delay makes the current plan unsafe.</li>
-              <li>Pre-approved stop is the nearest demonstration option.</li>
-              <li>Driver or dispatch chooses the action.</li>
+              <li>Seeded delay places the current plan below the reserve policy.</li>
+              <li>Pre-approved stop is the demonstration option supplied by the scenario.</li>
+              <li>Driver review determines the next action.</li>
             </ul>
           </article>
         </div>
@@ -66,7 +66,7 @@
         <div class="screen-heading"><div><p class="eyebrow">Reviewable output</p><h2>Trip exception report draft</h2></div><span class="status status-draft">Fallback draft</span></div>
         <div class="report-layout">
           <article class="panel report"><div class="report-meta"><span>Source</span><b>Deterministic local fallback</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
-          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact dispatch, change a route, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded for this local demo. No external action was taken.</p></aside>
+          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded for this local demo. No external action was taken.</p></aside>
         </div>
         <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
       </section>

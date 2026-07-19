@@ -79,28 +79,102 @@ gh pr view 2 --repo seeker-cyber-maker/pitt-build-week
 
 ---
 
-## État actuel (à la fin de la session 2026-07-19)
+## État actuel (à la fin de la session 2026-07-19, partie 2)
 
 | Élément | Statut |
 |---------|--------|
-| Module `packages/ai/` | ✅ Complet |
-| Tests `tests/ai/` | ✅ 18/18 passent |
-| Documentation | ✅ README + exemple |
-| Handoff | ✅ `HANDOFFS/Patrick.md` à jour |
-| Collation report | ✅ `CONTROL/COLLATION_REPORT.md` généré |
-| PR #2 | 🟢 **OPEN** — prête pour review |
-| Branche poussée | ✅ `origin/harness/patrick-ai-report` |
+| Module `packages/ai/` | ✅ Aligné avec Contract v1 |
+| Tests `tests/ai/` | ✅ 21/21 passent |
+| Documentation | ✅ README + exemple (contract v1) |
+| Handoff | ✅ `HANDOFFS/Patrick.md` à jour (contract v1) |
+| Collation report | ✅ `CONTROL/COLLATION_REPORT.md` régénéré |
+| PR #2 | 🟢 **OPEN** — alignée avec contract v1 |
+| Branche poussée | ✅ `origin/harness/patrick-ai-report` (5 commits ahead) |
 | Merge vers `main` | ❌ Non (attend review intégrateur) |
 
 ---
 
-## Questions d'intégration ouvertes
+## Session 2026-07-19 — Alignement Contract v1 (Kimi/Moonshot)
 
-1. **Schema Alignment** : `ScenarioPayload` correspond-il exactement à la sortie du scenario engine ?
-2. **Provider Choice** : OpenAI, Anthropic, ou modèle local pour la démo ?
-3. **Error Visibility** : L'UI devrait-elle montrer pourquoi AI a échoué ?
-4. **Timeout Config** : Rendre le timeout configurable via env var ?
-5. **Logging Level** : Fallback en INFO ou WARNING ?
+### Contexte
+Codex a avancé sur `harness/codex-integration` avec :
+- `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md` — contrat de rapport officiel
+- `CONTROL/fixtures/report-input.seeded-demo.v1.json` — fixture input
+- `CONTROL/fixtures/report-output.fallback.v1.json` — fixture output attendu
+- `app/` — démo shell locale avec scénario intégré
+- `tests/` — tests Node.js du contrat
+
+### Réalisé
+- [x] Fetch des branches distantes, découverte du contrat v1
+- [x] Lecture complète du contrat et fixtures
+- [x] Refonte `models.py` :
+  - `ScenarioPayload.from_dict()` parse `pitt.report-input.v1`
+  - `ReportResult.to_dict()` émet `pitt.report-draft.v1`
+- [x] Refonte `report_generator.py` :
+  - `generate_report()` respecte `outbound_provider_authorized`
+  - Fallback déterministe produit output identique au fixture Codex
+  - Narrative alignée avec `report-output.fallback.v1.json`
+- [x] Refonte `config.py` :
+  - `__repr__()` masqué pour empêcher fuite de secrets dans `str()`
+- [x] Refonte tests `test_report_generator.py` :
+  - 18 → 21 tests
+  - Tests d'alignement fixture (`TestContractFixture`)
+  - Test `outbound_provider_authorized=False` → fallback
+  - Tests `ReportResultContract` pour schema v1
+- [x] Mise à jour `README.md` et `example_usage.py` pour contract v1
+- [x] Mise à jour `HANDOFFS/Patrick.md` avec preuves contract v1
+- [x] Regénération `CONTROL/COLLATION_REPORT.md`
+- [x] Commit & push : `52848e2`
+- [x] Mise à jour PR #2 avec nouveau titre et body
+
+### Commits
+```
+52848e2 Align AI/report module with PITT Report Draft Contract v1
+657c6e5 Add WORKLOG.md for session tracking
+297c0ac Add final documentation and PR summary
+d3e4fa2 Add example usage script for report generator
+3aa333f Remove obsolete report_drafter.py file
+379ea37 Implement AI-assisted report generation with deterministic fallback
+```
+
+### Tests
+```bash
+python3 -m unittest discover -s tests/ai -p "test_*.py" -v
+# Ran 21 tests in 0.019s — OK
+```
+
+### Vérification fixture
+```bash
+PYTHONPATH=/opt/data/workspace/pitt-build-week python3 -c "
+from packages.ai import generate_report
+from packages.ai.models import ScenarioPayload
+import json
+with open('CONTROL/fixtures/report-input.seeded-demo.v1.json') as f:
+    d = json.load(f)
+r = generate_report(ScenarioPayload.from_dict(d))
+print(json.dumps(r.to_dict(), indent=2))
+"
+# Output = CONTROL/fixtures/report-output.fallback.v1.json ✅ identique
+```
+
+### Conformité Contract v1
+- ✅ `schema_version` == `pitt.report-input.v1` / `pitt.report-draft.v1`
+- ✅ `scenario.mode` == `seeded_demo` respecté
+- ✅ `deterministic_assessment` préservé verbatim
+- ✅ `driver_review_required` reste `True`
+- ✅ `outbound_provider_authorized: false` → pas d'appel réseau
+- ✅ Fallback sur toute erreur (config, HTTP, malformed, timeout)
+- ✅ Output AI preserve tous les deterministic facts
+- ✅ Pas de secrets dans logs ou string repr
+
+---
+
+## Questions d'intégration (issues par Codex)
+
+1. Le rapport actuel est-il suffisant pour qu'un chauffeur explique une exception sans que ça devienne du "paperwork theater" ?
+2. Quels 1-2 champs rendraient le rapport plus utile pour le dispatch tout en restant non-sensibles ?
+3. La distinction `observed`/`seeded`/`unknown` a-t-elle besoin d'un champ visible, ou provenance + limitations suffisent ?
+4. Quel phrasé sonne comme une ébauche utile plutôt qu'un système donnant des ordres au chauffeur ?
 
 ---
 
@@ -108,8 +182,8 @@ gh pr view 2 --repo seeker-cyber-maker/pitt-build-week
 
 ### Court terme (cette voie)
 - [ ] Répondre au feedback de review sur PR #2
-- [ ] Ajuster `ScenarioPayload` si le scenario engine confirme un schéma différent
-- [ ] Ajouter plus de tests si demandé par les reviewers
+- [ ] Ajuster selon réponses aux questions d'intégration
+- [ ] Ajouter tests si reviewers demandent
 
 ### Moyen terme (après merge)
 - [ ] Wire avec UI — connecter `generate_report()` au flow d'exception
@@ -137,8 +211,8 @@ git log --oneline -5
 # Lancer les tests
 python3 -m unittest discover -s tests/ai -p "test_*.py" -v
 
-# Tester la démo
-python3 packages/ai/example_usage.py
+# Tester la démo (avec PYTHONPATH)
+PYTHONPATH=/opt/data/workspace/pitt-build-week python3 packages/ai/example_usage.py
 
 # Voir la PR
 export PATH="$HOME/.local/bin:$PATH"

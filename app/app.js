@@ -1,5 +1,5 @@
 import { calculateRisk, createFallbackReport, createRecommendation, demoTrip } from "./scenario.js";
-import { createPlanningComparison, deliveryWindowLabels } from "./planner.js";
+import { createPlanningComparison, deliveryWindowLabels, formatPlanningTime, trafficForecastBasis } from "./planner.js";
 import { deliveryStatusLabels, evaluatePriceEvent, simulatedDayTimeline, summarizeDeliveryProgress } from "./day-playback.js";
 import { createFuelSimulation, fuelStatusLabels } from "./fuel-simulation.js";
 
@@ -199,22 +199,24 @@ function renderPlanning() {
   const { recommended, rejected, distanceSavedKm, fuelReserveImprovementPercent } = planning;
   const nextDelivery = recommended.steps.find((step) => step.type === "delivery" && recommended.refuel && step.from.id === recommended.refuel.at.id)?.to;
   const lowerPriceAlternative = recommended.refuel.alternatives.find(({ station }) => station.pricePerLitreCad < recommended.refuel.at.pricePerLitreCad);
+  const deliverySteps = new Map(recommended.steps.filter((step) => step.type === "delivery").map((step) => [step.to.id, step]));
   document.querySelector("#planning-summary").innerHTML = [
-    ["Priority order", recommended.deliveries.map((delivery) => deliveryWindowLabels[delivery.window]).join(" → ")],
+    ["Priority order", `${recommended.deliveries.map((delivery) => deliveryWindowLabels[delivery.window]).join(" → ")} · historical traffic breaks ties only`],
     ["Planned refuel", `${recommended.refuel.at.name} at ${formatFuelPrice(recommended.refuel.at.pricePerLitreCad)} · ${formatMoney(recommended.refuel.estimatedPlanCostCad)} total · ${formatFuelVolume(recommended.refuel.refillLitres)}`],
     ["Price tradeoff", lowerPriceAlternative ? `${lowerPriceAlternative.station.name} is cheaper per litre, but its simulated detour costs more.` : `Selected from reachable simulated stations before ${nextDelivery?.name ?? "the next delivery"}.`],
+    ["Predicted traffic", `${recommended.predictedTrafficDelayMinutes} simulated min across the planned corridor · estimated final presence ${formatPlanningTime(recommended.predictedArrivalMinutes)} · seeded weekday history`],
     ["Loop avoided", `${formatDistance(distanceSavedKm)} and ${Math.round(fuelReserveImprovementPercent)} percentage points more ending reserve`]
   ].map(([label, value]) => `<div class="planning-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
   document.querySelector("#delivery-list").innerHTML = recommended.deliveries.map((delivery, index) => `
     <div class="delivery-row">
       <span class="delivery-order">${index + 1}</span>
-      <div><strong>${delivery.name}</strong><small>${delivery.id}</small></div>
+      <div><strong>${delivery.name}</strong><small>${delivery.id} · predicted ${formatPlanningTime(deliverySteps.get(delivery.id).predictedArrivalMinutes)} · ${deliverySteps.get(delivery.id).trafficCondition} +${deliverySteps.get(delivery.id).predictedTrafficDelayMinutes} min</small></div>
       <span class="delivery-window window-${delivery.window}">${deliveryWindowLabels[delivery.window]}</span>
     </div>
   `).join("");
 
-  document.querySelector("#map-plan-caption").textContent = "Choose a seeded route to inspect its local fuel and ordering outcome.";
+  document.querySelector("#map-plan-caption").textContent = trafficForecastBasis;
   renderMap();
 }
 
@@ -359,6 +361,7 @@ function createMachineHandoff() {
     `  review_state = \"${state.confirmed ? "confirmed_local_only" : "driver_review_required"}\",`,
     "  external_action = false,",
     `  units = { distance = \"${distanceUnit}\", volume = \"${volumeUnit}\", money = \"${state.displayCurrency}\", money_basis = \"seeded_local_no_conversion\" },`,
+    `  traffic = { mode = \"seeded_weekday_historical\", total_delay_minutes = ${planning.recommended.predictedTrafficDelayMinutes}, estimated_final_presence = \"${formatPlanningTime(planning.recommended.predictedArrivalMinutes)}\", live_data = false },`,
     `  refuel = { station = \"${refuel.at.id}\", price = ${machineFuelPrice(refuel.at.pricePerLitreCad).toFixed(3)}, price_unit = \"${state.displayCurrency}_per_${volumeUnit}\", estimated_cost = ${refuel.estimatedPlanCostCad.toFixed(2)} },`,
     `  fuel = { start_percent = ${fuel.startingFuelPercent.toFixed(1)}, current_percent = ${fuel.currentFuelPercent.toFixed(1)}, reserve_floor_percent = ${fuel.reserveFloorPercent.toFixed(1)}, driver_decision = \"${state.fuelDecision ?? "pending"}\", status = \"${fuel.status}\" },`,
     `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, recorded_legs = ${summary.recordedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)}, close_reason = "${state.routeCloseReason ?? "open"}" },`,
@@ -382,8 +385,8 @@ function renderMap() {
   const polyline = (points) => points.map((point) => `${point.x},${point.y}`).join(" ");
   const allNodes = [planning.input.origin, ...planning.input.deliveries, ...planning.input.stations];
   const activeDescription = state.mapMode === "recommended"
-    ? `${formatDistance(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for ${formatFuelPrice(activePlan.refuel.at.pricePerLitreCad)}; ${formatMoney(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
-    : `${formatDistance(activePlan.distanceKm)}. No planned refuel; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
+    ? `${formatDistance(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for ${formatFuelPrice(activePlan.refuel.at.pricePerLitreCad)}; ${formatMoney(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ${activePlan.predictedTrafficDelayMinutes} simulated traffic minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
+    : `${formatDistance(activePlan.distanceKm)}. No planned refuel; ${activePlan.predictedTrafficDelayMinutes} simulated traffic minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
 
   document.querySelector("#map-canvas").innerHTML = `
     <svg viewBox="0 0 860 500" role="img" aria-label="${activePlan.label}: ${activeDescription}">

@@ -71,6 +71,8 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(markup, /data-display-currency="USD"/);
   assert.match(markup, /exchange rate/i);
   assert.match(app, /formatFuelPrice/);
+  assert.match(app, /Predicted traffic/);
+  assert.match(app, /trafficForecastBasis/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
   assert.match(markup, /src="\.\/app\.js\?v=live-fuel-simulation-20260719"/);
 });
@@ -84,6 +86,8 @@ test("report includes a review-gated Lua machine handoff", async () => {
   assert.match(markup, /id="machine-handoff-output"/);
   assert.match(markup, /id="copy-machine-handoff"/);
   assert.match(app, /pitt\.trip_handoff\.v1/);
+  assert.match(app, /seeded_weekday_historical/);
+  assert.match(app, /live_data = false/);
   assert.match(app, /driver_review_required/);
   assert.match(app, /external_action = false/);
   assert.match(app, /navigator\.clipboard\.writeText/);

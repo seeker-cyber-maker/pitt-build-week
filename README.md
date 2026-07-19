@@ -1,6 +1,6 @@
 # PITT Build Week
 
-PITT is a deliberately narrow demo of a trip-exception and report assistant for delivery drivers. It begins with a simulated delivery ledger that orders time windows and inserts a reachable simulated fuel stop, then plays a driver-controlled seeded day with two fuel-price events before showing one refrigerated-delivery exception: a route delay makes a fuel stop urgent, the driver reviews a deterministic recommendation, and a report draft is produced for approval.
+PITT is a deliberately narrow demo of a trip-exception and report assistant for delivery drivers. It begins with a simulated delivery ledger that orders time windows, applies a seeded weekday traffic pattern at predicted presence times, and inserts a reachable simulated fuel stop. It then plays a driver-controlled seeded day with two fuel-price events before showing one refrigerated-delivery exception: a route delay makes a fuel stop urgent, the driver reviews a deterministic recommendation, and a report draft is produced for approval.
 
 This repository is organized for several harnesses working in parallel without merging unverified ideas into the demo.
 
@@ -33,7 +33,7 @@ The existing scenario, UI, and AI/report lanes can replace the corresponding loc
 
 ## Demo Boundary
 
-PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates, local deterministic calculations, and seeded fuel prices balanced against simulated detour cost. Model output is a reviewable draft, never an autonomous instruction.
+PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates, local deterministic calculations, seeded fuel prices balanced against simulated detour cost, and a seeded weekday historical-traffic reference at predicted presence times. Model output is a reviewable draft, never an autonomous instruction.
 
 The display can switch between metric and imperial physical units. It can also label the seeded local-money scenario as CAD or USD; this is not a currency-conversion feature and does not use an exchange-rate feed.
 

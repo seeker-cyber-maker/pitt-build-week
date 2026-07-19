@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildRecommendedPlan, buildRejectedPlan, createPlanningComparison, deliveryWindowLabels, simulatedPlanningInput, sortDeliveries } from "../app/planner.js";
+import { buildRecommendedPlan, buildRejectedPlan, createPlanningComparison, deliveryWindowLabels, simulatedPlanningInput, sortDeliveries, trafficForecastBasis } from "../app/planner.js";
 
 test("delivery ledger sorts the seeded time windows before flexible work", () => {
   const ordered = sortDeliveries(simulatedPlanningInput.deliveries).map((delivery) => delivery.window);
@@ -28,4 +28,16 @@ test("rejected loop is longer and leaves less fuel than the recommended plan", (
   assert.ok(comparison.fuelReserveImprovementPercent > 0);
   assert.equal(rejected.meetsReservePolicy, false);
   assert.match(rejected.reasons.join(" "), /flexible work before urgent work/i);
+});
+
+test("predicted traffic uses seeded historical patterns at planned presence times", () => {
+  const plan = buildRecommendedPlan();
+  const travelSteps = plan.steps.filter((step) => step.distanceKm);
+
+  assert.ok(plan.predictedTrafficDelayMinutes > 0);
+  assert.ok(plan.predictedArrivalMinutes > 8 * 60 + 30);
+  assert.ok(travelSteps.every((step) => step.predictedTrafficDelayMinutes > 0));
+  assert.ok(travelSteps.every((step) => /historical/.test(step.trafficCondition)));
+  assert.match(plan.trafficBasis, /not live traffic/i);
+  assert.match(trafficForecastBasis, /predicted arrival time/i);
 });

@@ -20,7 +20,7 @@ For Build Week, any routing object is a **seeded local scenario**. It must be vi
 | `reserve_state` | yes | Current reserve, policy floor, and calculation provenance | Deterministic scenario facts are authoritative. |
 | `driver_hours_state` | optional | Declared availability or `unknown` | Do not infer hours-of-service compliance. |
 | `weather_context` | optional | Source, timestamp, and availability | Missing data must be explicit. |
-| `provider_context` | yes | Map/traffic source or `unavailable` | No provider call in Build Week mode. |
+| `provider_context` | yes | Map/traffic source or `unavailable` | No provider call in Build Week mode; any traffic value is a visibly seeded historical-pattern reference. |
 | `data_handling` | yes | Provenance, retention, and outbound authorization | Follow the same minimization posture as reports. |
 
 `vehicle_profile` contains only declared, stable classification fields:
@@ -54,7 +54,7 @@ An empty or incomplete `declared_restrictions` list means restrictions are unkno
 
 1. Validate the declared mode, origin label, destination label, and complete reserve facts before emitting a recommendation. Missing required facts return `validation_failed` and list the fields in `blocking_unknowns`.
 2. Classify the supplied reserve gap deterministically: greater than 3 percentage points is `safe`; 0 through 3 points inclusive is `tight`; below 0 is `urgent`.
-3. Treat vehicle restrictions, cargo restrictions, clearance, current traffic, weather, station availability, price, and driver-hours compliance as `unknown` unless supplied with source and freshness metadata.
+3. Treat vehicle restrictions, cargo restrictions, clearance, current traffic, weather, station availability, price, and driver-hours compliance as `unknown` unless supplied with source and freshness metadata. A declared historical traffic profile may be used only as a bounded ETA preference at a predicted presence time; it is never current traffic or a safety/compliance claim.
 4. Never issue turn-by-turn instructions, control a vehicle, change dispatch plans, or describe a route as safe or compliant.
 5. Keep a recommendation reviewable: expose assumptions, alternatives, provenance, `context_summary`, and degraded behavior.
 6. When non-blocking external data is missing, return `degraded_ready` with explicit limitations rather than guessing. Weather, driver-hours state, restrictions, traffic, prices, and station availability are non-blocking unless a future declared policy says otherwise.

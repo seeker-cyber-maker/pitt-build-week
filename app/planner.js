@@ -14,6 +14,38 @@ const windowPriority = Object.freeze({
   flexible: 4
 });
 
+export const trafficForecastBasis = "Seeded weekday historical pattern at predicted arrival time; not live traffic.";
+
+const planningStartMinutes = 8 * 60 + 30;
+
+export function formatPlanningTime(minutes) {
+  const hour = Math.floor(minutes / 60) % 24;
+  const minute = Math.round(minutes % 60);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+export function predictHistoricalTraffic(from, to, departureMinutes) {
+  const hour = Math.floor(departureMinutes / 60) % 24;
+  const distanceKm = mapDistanceKm(from, to);
+  const corridorWeight = Math.abs(to.y - from.y) > 90 ? 1.15 : 1;
+  let condition = "light historical traffic";
+  let multiplier = 0.08;
+
+  if ((hour >= 7 && hour < 10) || (hour >= 16 && hour < 19)) {
+    condition = "historical peak traffic";
+    multiplier = 0.42;
+  } else if ((hour >= 10 && hour < 12) || (hour >= 14 && hour < 16)) {
+    condition = "historical moderate traffic";
+    multiplier = 0.22;
+  }
+
+  return {
+    condition,
+    delayMinutes: Math.max(1, Math.round(distanceKm * multiplier * corridorWeight)),
+    basis: trafficForecastBasis
+  };
+}
+
 export const simulatedPlanningInput = Object.freeze({
   vehicle: Object.freeze({
     startingFuelPercent: 50,
@@ -42,13 +74,16 @@ export function mapDistanceKm(from, to) {
   return Math.hypot(to.x - from.x, to.y - from.y) / 10;
 }
 
-export function sortDeliveries(deliveries, origin = simulatedPlanningInput.origin) {
+export function sortDeliveries(deliveries, origin = simulatedPlanningInput.origin, departureMinutes = planningStartMinutes) {
   return [...deliveries].sort((left, right) => {
     const priorityDifference = windowPriority[left.window] - windowPriority[right.window];
     if (priorityDifference !== 0) return priorityDifference;
 
-    const distanceDifference = mapDistanceKm(origin, left) - mapDistanceKm(origin, right);
-    return distanceDifference || left.id.localeCompare(right.id);
+    const leftTraffic = predictHistoricalTraffic(origin, left, departureMinutes).delayMinutes;
+    const rightTraffic = predictHistoricalTraffic(origin, right, departureMinutes).delayMinutes;
+    const leftScore = mapDistanceKm(origin, left) + leftTraffic;
+    const rightScore = mapDistanceKm(origin, right) + rightTraffic;
+    return leftScore - rightScore || left.id.localeCompare(right.id);
   });
 }
 
@@ -87,11 +122,28 @@ function chooseFuelStop(current, next, input) {
   return { ...candidates[0], alternatives: candidates.slice(1) };
 }
 
-function addLeg(steps, from, to, fuelPercent, vehicle, type = "delivery") {
+function addLeg(steps, from, to, fuelPercent, vehicle, departureMinutes, type = "delivery") {
   const distanceKm = mapDistanceKm(from, to);
   const nextFuelPercent = fuelPercent - fuelCost(distanceKm, vehicle);
-  steps.push({ type, from, to, distanceKm, fuelBeforePercent: fuelPercent, fuelAfterPercent: nextFuelPercent });
-  return nextFuelPercent;
+  const traffic = predictHistoricalTraffic(from, to, departureMinutes);
+  const baselineTravelMinutes = Math.max(1, Math.round(distanceKm * 1.2));
+  const plannedTravelMinutes = baselineTravelMinutes + traffic.delayMinutes;
+  const predictedArrivalMinutes = departureMinutes + plannedTravelMinutes;
+  steps.push({
+    type,
+    from,
+    to,
+    distanceKm,
+    fuelBeforePercent: fuelPercent,
+    fuelAfterPercent: nextFuelPercent,
+    departureMinutes,
+    predictedArrivalMinutes,
+    baselineTravelMinutes,
+    predictedTrafficDelayMinutes: traffic.delayMinutes,
+    trafficCondition: traffic.condition,
+    trafficBasis: traffic.basis
+  });
+  return { fuelPercent: nextFuelPercent, predictedArrivalMinutes };
 }
 
 export function buildRecommendedPlan(input = simulatedPlanningInput) {
@@ -100,18 +152,24 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
   const steps = [];
   let current = origin;
   let fuelPercent = vehicle.startingFuelPercent;
+  let predictedMinutes = planningStartMinutes;
 
   for (const delivery of deliveries) {
     const directCost = fuelCost(mapDistanceKm(current, delivery), vehicle);
     if (fuelPercent - directCost < vehicle.minimumReservePercent) {
       const fuelStop = chooseFuelStop({ ...current, fuelPercent }, delivery, input);
       if (fuelStop) {
-        fuelPercent = addLeg(steps, current, fuelStop.station, fuelPercent, vehicle, "refuel-approach");
+        const approach = addLeg(steps, current, fuelStop.station, fuelPercent, vehicle, predictedMinutes, "refuel-approach");
+        fuelPercent = approach.fuelPercent;
+        predictedMinutes = approach.predictedArrivalMinutes;
         steps.push({
           type: "refuel",
           at: fuelStop.station,
           fuelBeforePercent: fuelPercent,
           fuelAfterPercent: vehicle.refuelToPercent,
+          departureMinutes: predictedMinutes,
+          predictedArrivalMinutes: predictedMinutes + 12,
+          serviceMinutes: 12,
           detourKm: fuelStop.detourKm,
           refillLitres: fuelStop.refillLitres,
           fuelSpendCad: fuelStop.fuelSpendCad,
@@ -120,16 +178,20 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
           alternatives: fuelStop.alternatives
         });
         fuelPercent = vehicle.refuelToPercent;
+        predictedMinutes += 12;
         current = fuelStop.station;
       }
     }
 
-    fuelPercent = addLeg(steps, current, delivery, fuelPercent, vehicle);
+    const leg = addLeg(steps, current, delivery, fuelPercent, vehicle, predictedMinutes);
+    fuelPercent = leg.fuelPercent;
+    predictedMinutes = leg.predictedArrivalMinutes;
     current = delivery;
   }
 
   const distanceKm = steps.filter((step) => step.distanceKm).reduce((total, step) => total + step.distanceKm, 0);
   const refuel = steps.find((step) => step.type === "refuel");
+  const predictedTrafficDelayMinutes = steps.reduce((total, step) => total + (step.predictedTrafficDelayMinutes ?? 0), 0);
 
   return {
     label: "Recommended plan",
@@ -138,6 +200,9 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
     distanceKm,
     endingFuelPercent: fuelPercent,
     refuel,
+    predictedArrivalMinutes: predictedMinutes,
+    predictedTrafficDelayMinutes,
+    trafficBasis: trafficForecastBasis,
     meetsReservePolicy: fuelPercent >= vehicle.minimumReservePercent
   };
 }
@@ -149,9 +214,12 @@ export function buildRejectedPlan(input = simulatedPlanningInput) {
   const steps = [];
   let current = origin;
   let fuelPercent = vehicle.startingFuelPercent;
+  let predictedMinutes = planningStartMinutes;
 
   for (const delivery of deliveries) {
-    fuelPercent = addLeg(steps, current, delivery, fuelPercent, vehicle, "delivery");
+    const leg = addLeg(steps, current, delivery, fuelPercent, vehicle, predictedMinutes, "delivery");
+    fuelPercent = leg.fuelPercent;
+    predictedMinutes = leg.predictedArrivalMinutes;
     current = delivery;
   }
 
@@ -162,6 +230,9 @@ export function buildRejectedPlan(input = simulatedPlanningInput) {
     steps,
     distanceKm,
     endingFuelPercent: fuelPercent,
+    predictedArrivalMinutes: predictedMinutes,
+    predictedTrafficDelayMinutes: steps.reduce((total, step) => total + step.predictedTrafficDelayMinutes, 0),
+    trafficBasis: trafficForecastBasis,
     refuel: null,
     meetsReservePolicy: false,
     reasons: [

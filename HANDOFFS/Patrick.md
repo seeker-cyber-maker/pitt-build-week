@@ -13,11 +13,163 @@
 - Added deterministic fallback, provenance labeling, secret-safe configuration, and an optional OpenAI-compatible path that is never called when `outbound_provider_authorized` is false.
 - Added `tests/ai/test_report_generator.py` and an example using the canonical seeded fixtures.
 
-## Evidence
+### Evidence
 
-- `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`: 21 tests passed on Patrick's branch.
-- The seeded input fixture produces the required deterministic fallback fixture exactly.
-- Failure paths for missing configuration, unauthorized outbound use, transport errors, timeouts, and malformed responses fall back safely.
+- Review conducted against existing `PITT-DEMO-017` fixture and `app/scenario.js` (commit `19dda1e`).
+- Proposed values grounded in 25+ years driving experience: fuel burn rates, typical policy floors, realistic delays, and corridor stop distances.
+- Only `HANDOFFS/Patrick.md` was modified.
+
+---
+
+## Driver demo walkthrough
+
+**Date:** 2026-07-19
+**Branch:** `harness/patrick-demo-walkthrough`
+**Scope:** Evaluate the seeded local demo as a driver would. No code edits.
+**Method:** `npm test` (5/5 passed), `npm run serve`, browser walkthrough of all 3 screens completing each visible step once.
+
+---
+
+### Findings by screen
+
+#### Screen 1 — Trip watch
+
+**Finding 1.1: "Review reserve risk" button**
+- **Visible wording:** "Review reserve risk"
+- **Category:** `useful preference`
+- **Why it matters:** The word "risk" is slightly alarmist for a routine pre-check. A driver seeing "risk" on every trip might tune it out.
+- **Suggested replacement:** "Check reserve status" or "Review fuel reserve"
+
+**Finding 1.2: Metric sub-labels**
+- **Visible wording:** "Seeded fuel state", "Policy threshold", "Seeded exception"
+- **Category:** `no issue`
+- **Why it matters:** These sub-labels are honest and transparent. They tell the driver these are scenario values, not live data, without breaking the flow.
+
+**Finding 1.3: "Seeded demo" badge**
+- **Visible wording:** "Seeded demo"
+- **Category:** `no issue`
+- **Why it matters:** Clearly visible in the top-right. Sets expectations immediately.
+
+---
+
+#### Screen 2 — Driver review
+
+**Finding 2.1: "Projected reserve crosses the policy floor"**
+- **Visible wording:** "Projected reserve crosses the policy floor"
+- **Category:** `confirmed friction`
+- **Why it matters:** The verb "crosses" is ambiguous. It could mean "exceeds" (above) or "drops below". In a stressful moment, a driver should not have to parse this.
+- **Suggested replacement:** "Projected reserve falls below the policy floor"
+
+**Finding 2.2: "5% below floor" without directional clarity**
+- **Visible wording:** "5% below floor"
+- **Category:** `confirmed friction`
+- **Why it matters:** This is the most critical number on the screen. The reserve gap is -5% (below floor), but a quick glance might read it as "5% remaining above floor". The visual fuel bar helps, but the text alone is ambiguous under time pressure.
+- **Suggested replacement:** Reserve the absolute value but add direction: "5% below policy floor (gap: -5%)" or use a red/amber color indicator that is unambiguous.
+
+**Finding 2.3: "Pre-approved stop is the demonstration option supplied by the scenario"**
+- **Visible wording:** "Pre-approved stop is the demonstration option supplied by the scenario"
+- **Category:** `confirmed friction`
+- **Why it matters:** "Supplied by the scenario" has no meaning to a driver. It is construction jargon bleeding into the user-facing text.
+- **Suggested replacement:** "This stop is on the planned corridor and pre-approved by the carrier."
+
+**Finding 2.4: Checkbox wording**
+- **Visible wording:** "I reviewed the recommendation and want a report draft."
+- **Category:** `no issue`
+- **Why it matters:** Clear, driver-centric, and does not imply automatic action.
+
+**Finding 2.5: Button disabled until checkbox is checked**
+- **Category:** `no issue`
+- **Why it matters:** Good pattern. Forces explicit acknowledgment before proceeding.
+
+---
+
+#### Screen 3 — Report draft
+
+**Finding 3.1: "A seeded 28-minute delay" in the report body**
+- **Visible wording:** "A seeded 28-minute delay changes projected fuel reserve to 7%"
+- **Category:** `confirmed friction`
+- **Why it matters:** The word "seeded" is developer jargon. A driver reading their report does not know what "seeded" means. It undermines trust in the report.
+- **Suggested replacement:** "A 28-minute delay changes projected fuel reserve to 7%" (remove "seeded")
+
+**Finding 3.2: "Source: deterministic local demo fallback" in the report body**
+- **Visible wording:** "Source: deterministic local demo fallback. Seeded arithmetic only; not a live corridor prediction."
+- **Category:** `confirmed friction`
+- **Why it matters:** This is pure construction metadata. It belongs in a system log, not a driver-facing report. A driver should see provenance ("Local calculation, no external data") but not the internal module name.
+- **Suggested replacement:** "Source: local calculation based on current fuel, delay, and carrier policy. No live traffic or weather data used."
+
+**Finding 3.3: "Review recorded for this local demo"**
+- **Visible wording:** "Review recorded for this local demo. No external action was taken."
+- **Category:** `confirmed friction`
+- **Why it matters:** "For this local demo" breaks the fourth wall. The driver does not know they are in a demo.
+- **Suggested replacement:** "Review recorded. No external action was taken." (keep the second half, which is excellent)
+
+**Finding 3.4: "PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker."**
+- **Visible wording:** Exact text above
+- **Category:** `no issue`
+- **Why it matters:** Perfect tone. Neither directive nor surveillance. It explicitly sets boundaries and empowers the driver.
+
+**Finding 3.5: "Confirm review" button**
+- **Visible wording:** "Confirm review"
+- **Category:** `no issue`
+- **Why it matters:** Clear action. Does not say "Submit" or "Approve" (which might imply dispatch authority).
+
+---
+
+### Cross-screen observations
+
+**Navigation friction**
+- **Category:** `confirmed friction`
+- **Observation:** The progress dots ("1 Trip watch", "2 Driver review", "3 Report draft") look clickable but forward navigation from dot 1 to dot 2 did not respond in the walkthrough. Backward navigation (dot 3 to dot 2) worked. Forward flow required clicking the primary button instead.
+- **Why it matters:** A driver might click the progress bar expecting to jump ahead, then think the app is frozen. Consistent navigation behavior matters in a cab.
+- **Suggested fix:** Either make all progress dots clickable for forward navigation, or visually disable the ones that are not yet reachable.
+
+**Missing: selection basis visibility**
+- **Category:** `useful preference`
+- **Observation:** The selection basis ("pre-approved demo stop") appears in the bullet list on screen 2 but is not prominent. On screen 3, it is missing entirely from the report draft.
+- **Why it matters:** Drivers need to know *why* this stop was chosen. Trust depends on transparency.
+- **Suggested fix:** Add a line to the report: "Selection basis: pre-approved corridor stop."
+
+**Missing: explicit alternative in report**
+- **Category:** `useful preference`
+- **Observation:** The two alternatives ("Continue without stopping...", "Contact dispatch...") are visible on screen 2 but absent from the report draft on screen 3.
+- **Why it matters:** A report reviewed later by dispatch or a supervisor should show that alternatives were considered.
+- **Suggested fix:** Include alternatives in the report body.
+
+---
+
+### Summary table
+
+| Finding | Screen | Category | Priority |
+|---|---|---|---|
+| "crosses the policy floor" is ambiguous | Screen 2 | confirmed friction | High |
+| "5% below floor" lacks directional clarity | Screen 2 | confirmed friction | High |
+| "seeded" in report body | Screen 3 | confirmed friction | High |
+| "deterministic local demo fallback" in report | Screen 3 | confirmed friction | High |
+| "supplied by the scenario" | Screen 2 | confirmed friction | Medium |
+| "for this local demo" after confirm | Screen 3 | confirmed friction | Medium |
+| Forward navigation via progress dots | All | confirmed friction | Medium |
+| Selection basis missing from report | Screen 3 | useful preference | Medium |
+| Alternatives missing from report | Screen 3 | useful preference | Low |
+| "Review reserve risk" slightly alarmist | Screen 1 | useful preference | Low |
+| Boundary disclaimer and driver empowerment | Screen 3 | no issue | — |
+| Checkbox and disabled-button pattern | Screen 2 | no issue | — |
+
+---
+
+### What I did NOT do
+
+- Did NOT edit `app/index.html`, `app/app.js`, `app/scenario.js`, or `app/styles.css`.
+- Did NOT modify `CONTROL/CONTRACTS/`, `CONTROL/WORKBOARD.md`, or other shared files.
+- Did NOT add screenshots, provider keys, or external data.
+- Did NOT claim the demo has live routing, fleet integration, or regulatory compliance.
+
+---
+
+### Evidence
+
+- Walkthrough conducted on `http://127.0.0.1:4173` running from commit `35b1bef`.
+- All three visible steps completed: trip watch → driver review → report draft → confirm.
+- Only `HANDOFFS/Patrick.md` was modified.
 
 ## Limits Or Risks
 

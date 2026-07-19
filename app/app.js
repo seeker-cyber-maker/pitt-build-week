@@ -4,14 +4,15 @@ import { createPlanningComparison, deliveryWindowLabels } from "./planner.js";
 const trip = demoTrip;
 const risk = calculateRisk(trip);
 const recommendation = createRecommendation(trip, risk);
-const planning = createPlanningComparison();
+let planning = createPlanningComparison();
 
 const state = {
   activeStep: 1,
   highestUnlockedStep: 1,
   reviewed: false,
   confirmed: false,
-  mapMode: "recommended"
+  mapMode: "recommended",
+  rebuildCount: 0
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -33,6 +34,14 @@ function render() {
   document.querySelector("#confirm-button").disabled = !state.reviewed;
   document.querySelector("#review-toggle").checked = state.reviewed;
   document.querySelector("#confirmed-state").hidden = !state.confirmed;
+  const rebuildStatus = document.querySelector("#plan-rebuild-status");
+  rebuildStatus.hidden = state.rebuildCount === 0;
+  rebuildStatus.textContent = state.rebuildCount === 0
+    ? ""
+    : `Local plan rebuilt from the same seeded inputs. Result unchanged by design. Run ${state.rebuildCount}.`;
+  document.querySelector("#rebuild-plan-button").textContent = state.rebuildCount === 0
+    ? "Rebuild local plan"
+    : `Local plan rebuilt · run ${state.rebuildCount}`;
   document.querySelectorAll("[data-map-mode]").forEach((button) => {
     const selected = button.dataset.mapMode === state.mapMode;
     button.classList.toggle("is-selected", selected);
@@ -169,7 +178,10 @@ document.querySelectorAll("[data-map-mode]").forEach((button) => {
   });
 });
 document.querySelector("#rebuild-plan-button").addEventListener("click", () => {
+  planning = createPlanningComparison();
+  state.rebuildCount += 1;
   state.mapMode = "recommended";
+  renderPlanning();
   render();
 });
 document.querySelectorAll("[data-go-to]").forEach((button) => {

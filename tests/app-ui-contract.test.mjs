@@ -33,3 +33,14 @@ test("driver-facing report uses plain-language provenance and selection context"
   assert.match(report, /Source: local calculation from the displayed fuel, delay, and carrier policy/);
   assert.doesNotMatch(report, /seeded|deterministic local demo fallback/i);
 });
+
+test("rebuilding the local plan has a visible result", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /id="plan-rebuild-status"/);
+  assert.match(app, /planning = createPlanningComparison\(\);/);
+  assert.match(app, /state\.rebuildCount \+= 1/);
+});

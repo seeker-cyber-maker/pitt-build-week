@@ -7,7 +7,7 @@
 
 Before the active trip exception, the demo shows a local delivery ledger with five simulated destinations. It orders declared time windows as `ASAP`, `Before noon`, `Before EOB`, `All day`, then `No time specified`. A fixed-coordinate, made-up corridor map compares that plan with a deliberately rejected loop.
 
-The recommended plan inserts Cedar Service Plaza before North Market Distribution Centre because the next direct leg would cross the seeded 14% reserve floor. The comparison is deterministic and visibly labelled a local map simulation. It is not a claim about real roads, stations, traffic, distance, routing, or fuel availability.
+The recommended plan inserts Cedar Service Plaza before North Market Distribution Centre because the next direct leg would cross the seeded 14% reserve floor. Its selection balances seeded per-litre price against simulated detour cost; South Loop Fuel is cheaper per litre, but loses after its longer detour is counted. The comparison is deterministic and visibly labelled a local map simulation. It is not a claim about real roads, stations, traffic, distance, routing, fuel price, or fuel availability.
 
 ## Trip Context
 

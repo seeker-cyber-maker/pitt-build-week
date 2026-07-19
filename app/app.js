@@ -73,6 +73,10 @@ function formatKm(value) {
   return `${value.toFixed(1)} simulated km`;
 }
 
+function formatCad(value) {
+  return `$${value.toFixed(2)} CAD`;
+}
+
 function routePoints(plan) {
   const firstLeg = plan.steps.find((step) => step.from);
   if (!firstLeg) return [];
@@ -82,9 +86,11 @@ function routePoints(plan) {
 function renderPlanning() {
   const { recommended, rejected, distanceSavedKm, fuelReserveImprovementPercent } = planning;
   const nextDelivery = recommended.steps.find((step) => step.type === "delivery" && recommended.refuel && step.from.id === recommended.refuel.at.id)?.to;
+  const lowerPriceAlternative = recommended.refuel.alternatives.find(({ station }) => station.pricePerLitreCad < recommended.refuel.at.pricePerLitreCad);
   document.querySelector("#planning-summary").innerHTML = [
     ["Priority order", recommended.deliveries.map((delivery) => deliveryWindowLabels[delivery.window]).join(" → ")],
-    ["Planned refuel", `${recommended.refuel.at.name} before ${nextDelivery?.name ?? "the next delivery"}`],
+    ["Planned refuel", `${recommended.refuel.at.name} at $${recommended.refuel.at.pricePerLitreCad.toFixed(3)}/L · ${formatCad(recommended.refuel.estimatedPlanCostCad)} total`],
+    ["Price tradeoff", lowerPriceAlternative ? `${lowerPriceAlternative.station.name} is cheaper per litre, but its simulated detour costs more.` : `Selected from reachable simulated stations before ${nextDelivery?.name ?? "the next delivery"}.`],
     ["Loop avoided", `${distanceSavedKm.toFixed(1)} simulated km and ${Math.round(fuelReserveImprovementPercent)} percentage points more ending reserve`]
   ].map(([label, value]) => `<div class="planning-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
@@ -108,7 +114,7 @@ function renderMap() {
   const polyline = (points) => points.map((point) => `${point.x},${point.y}`).join(" ");
   const allNodes = [planning.input.origin, ...planning.input.deliveries, ...planning.input.stations];
   const activeDescription = state.mapMode === "recommended"
-    ? `${formatKm(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name}; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
+    ? `${formatKm(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for $${activePlan.refuel.at.pricePerLitreCad.toFixed(3)}/L; ${formatCad(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
     : `${formatKm(activePlan.distanceKm)}. No planned refuel; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
 
   document.querySelector("#map-canvas").innerHTML = `
@@ -125,10 +131,11 @@ function renderMap() {
       ${allNodes.map((node) => {
         const isOrigin = node.kind === "origin";
         const isStation = node.kind === "station";
-        const label = isOrigin ? "Depot" : isStation ? node.name : node.name;
+        const label = isOrigin ? "Depot" : node.name;
+        const labelOnLeft = node.x > 610;
         return `<g class="map-node ${isOrigin ? "node-origin" : isStation ? "node-station" : "node-delivery"}">
           <circle cx="${node.x}" cy="${node.y}" r="${isOrigin ? 11 : isStation ? 9 : 8}" />
-          <text x="${node.x + 14}" y="${node.y - 12}">${label}</text>
+          ${isStation ? "" : `<text x="${node.x + (labelOnLeft ? -14 : 14)}" y="${node.y - 12}" text-anchor="${labelOnLeft ? "end" : "start"}">${label}</text>`}
         </g>`;
       }).join("")}
       ${activePlan.deliveries.map((delivery, index) => `<text class="route-number" x="${delivery.x - 4}" y="${delivery.y + 5}">${index + 1}</text>`).join("")}

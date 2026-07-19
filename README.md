@@ -33,6 +33,6 @@ The existing scenario, UI, and AI/report lanes can replace the corresponding loc
 
 ## Demo Boundary
 
-PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates and local deterministic calculations. Model output is a reviewable draft, never an autonomous instruction.
+PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates, local deterministic calculations, and seeded fuel prices balanced against simulated detour cost. Model output is a reviewable draft, never an autonomous instruction.
 
 See `CONTROL/PRODUCT_SCOPE.md` for the exact demo contract and `CONTROL/WORKBOARD.md` for the current queue.

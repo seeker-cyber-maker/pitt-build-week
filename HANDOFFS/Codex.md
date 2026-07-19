@@ -19,6 +19,7 @@
 - Added all three reserve states to `app/scenario.js`; the visible demo remains intentionally pinned to the urgent scenario.
 - Added `app/planner.js`: a separate deterministic planning preview with a local delivery ledger, declared time-window ordering, reachable simulated refuel selection, and a recommended-versus-rejected route comparison. The map is explicitly made up and cannot be mistaken for live routing.
 - Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
+- Made refuel selection price-aware using only seeded CAD-per-litre values plus a simulated detour-cost rule. The UI makes the cheaper-per-litre-but-longer alternative explicit without implying a live fuel-price feed.
 
 ## Evidence
 

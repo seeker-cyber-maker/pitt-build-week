@@ -21,7 +21,7 @@ _[Screen shows the simulated planning ledger and local map simulation.]_
 
 "Before the active trip, PITT shows a small local planning preview. Five simulated deliveries are sorted from ASAP through flexible work. The system compares that order with a deliberately wasteful loop drawn on a made-up corridor map.
 
-The recommended version inserts a reachable simulated fuel stop before the next leg would cross the 14-percent reserve floor. This is deliberately not live navigation: the coordinates, stations, and fuel math are all local demo data. The point is to make the ordering and refuel decision inspectable."
+The recommended version inserts a reachable simulated fuel stop before the next leg would cross the 14-percent reserve floor. It balances a seeded per-litre price against the added detour cost, so the cheapest listed stop does not automatically win. This is deliberately not live navigation: the coordinates, stations, prices, and fuel math are all local demo data. The point is to make the ordering and refuel decision inspectable."
 
 ---
 

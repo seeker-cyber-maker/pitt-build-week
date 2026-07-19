@@ -19,7 +19,9 @@ export const simulatedPlanningInput = Object.freeze({
     startingFuelPercent: 50,
     minimumReservePercent: 14,
     refuelToPercent: 80,
-    fuelPercentPerMapKm: 0.9
+    fuelPercentPerMapKm: 0.9,
+    tankLitres: 100,
+    simulatedDetourCostPerKmCad: 0.72
   }),
   origin: Object.freeze({ id: "hub", name: "Depot", kind: "origin", x: 90, y: 375 }),
   deliveries: Object.freeze([
@@ -30,9 +32,9 @@ export const simulatedPlanningInput = Object.freeze({
     Object.freeze({ id: "DEL-108", name: "West Dock Receiving", window: "flexible", x: 550, y: 400 })
   ]),
   stations: Object.freeze([
-    Object.freeze({ id: "FUEL-1", name: "Cedar Service Plaza", kind: "station", x: 400, y: 270 }),
-    Object.freeze({ id: "FUEL-2", name: "Riverside Fuel Stop", kind: "station", x: 675, y: 365 }),
-    Object.freeze({ id: "FUEL-3", name: "South Loop Fuel", kind: "station", x: 310, y: 420 })
+    Object.freeze({ id: "FUEL-1", name: "Cedar Service Plaza", kind: "station", x: 400, y: 270, pricePerLitreCad: 1.869 }),
+    Object.freeze({ id: "FUEL-2", name: "Riverside Fuel Stop", kind: "station", x: 675, y: 365, pricePerLitreCad: 1.799 }),
+    Object.freeze({ id: "FUEL-3", name: "South Loop Fuel", kind: "station", x: 310, y: 420, pricePerLitreCad: 1.739 })
   ])
 });
 
@@ -61,17 +63,28 @@ function chooseFuelStop(current, next, input) {
     .map((station) => {
       const approachKm = mapDistanceKm(current, station);
       const onwardKm = mapDistanceKm(station, next);
+      const fuelAfterApproachPercent = current.fuelPercent - fuelCost(approachKm, vehicle);
+      const refillLitres = ((vehicle.refuelToPercent - fuelAfterApproachPercent) / 100) * vehicle.tankLitres;
+      const detourKm = approachKm + onwardKm - directKm;
+      const fuelSpendCad = refillLitres * station.pricePerLitreCad;
+      const detourCostCad = detourKm * vehicle.simulatedDetourCostPerKmCad;
       return {
         station,
         approachKm,
         onwardKm,
-        detourKm: approachKm + onwardKm - directKm
+        detourKm,
+        fuelAfterApproachPercent,
+        refillLitres,
+        fuelSpendCad,
+        detourCostCad,
+        estimatedPlanCostCad: fuelSpendCad + detourCostCad
       };
     })
-    .filter(({ approachKm }) => current.fuelPercent - fuelCost(approachKm, vehicle) >= vehicle.minimumReservePercent)
-    .sort((left, right) => left.detourKm - right.detourKm || left.station.id.localeCompare(right.station.id));
+    .filter(({ fuelAfterApproachPercent }) => fuelAfterApproachPercent >= vehicle.minimumReservePercent)
+    .sort((left, right) => left.estimatedPlanCostCad - right.estimatedPlanCostCad || left.detourKm - right.detourKm || left.station.id.localeCompare(right.station.id));
 
-  return candidates[0] ?? null;
+  if (!candidates[0]) return null;
+  return { ...candidates[0], alternatives: candidates.slice(1) };
 }
 
 function addLeg(steps, from, to, fuelPercent, vehicle, type = "delivery") {
@@ -99,7 +112,12 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
           at: fuelStop.station,
           fuelBeforePercent: fuelPercent,
           fuelAfterPercent: vehicle.refuelToPercent,
-          detourKm: fuelStop.detourKm
+          detourKm: fuelStop.detourKm,
+          refillLitres: fuelStop.refillLitres,
+          fuelSpendCad: fuelStop.fuelSpendCad,
+          detourCostCad: fuelStop.detourCostCad,
+          estimatedPlanCostCad: fuelStop.estimatedPlanCostCad,
+          alternatives: fuelStop.alternatives
         });
         fuelPercent = vehicle.refuelToPercent;
         current = fuelStop.station;

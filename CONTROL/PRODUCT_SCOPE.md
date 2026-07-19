@@ -8,7 +8,7 @@ A refrigerated delivery is underway. A simulated delivery ledger ranks its stops
 
 - A visible, seeded trip scenario and a visible `Demo scenario` label.
 - A visible local delivery ledger with `ASAP`, `Before noon`, `Before EOB`, `All day`, and no-time-specified work.
-- Deterministic simulated route ordering, refuel selection, and a clearly labelled recommended-versus-rejected local map visualization.
+- Deterministic simulated route ordering, refuel selection that balances seeded fuel price with simulated detour cost, and a clearly labelled recommended-versus-rejected local map visualization.
 - Deterministic fuel-reserve and deadline-risk calculations.
 - A recommendation with plain reasons, confidence/limitations, and alternatives.
 - A driver review/confirm step; no automatic action.

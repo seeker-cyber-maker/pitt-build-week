@@ -20,15 +20,16 @@
 - Added `app/planner.js`: a separate deterministic planning preview with a local delivery ledger, declared time-window ordering, reachable simulated refuel selection, and a recommended-versus-rejected route comparison. The map is explicitly made up and cannot be mistaken for live routing.
 - Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
 - Made refuel selection price-aware using only seeded CAD-per-litre values plus a simulated detour-cost rule. The UI makes the cheaper-per-litre-but-longer alternative explicit without implying a live fuel-price feed.
+- Added a driver-controlled seeded day playback: five delivery legs, a noon price spike, a 3 PM price drop, explicit keep-or-recalculate choices, and a final delivery-outcome summary. The price events modify only the local planning preview and retain the no-live-data boundary.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 11/11 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Result:** 16/16 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; price-event transitions; delivery-outcome summary; scope-bounded recommendation; and provenance-bearing local fallback report.
 - **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
 - **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
-- **Result:** The planning ledger, recommended plan, rejected loop, and the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow all rendered and changed local state. The confirmation visibly states that no external action was taken.
+- **Result:** Desktop and mobile walkthroughs completed the five-leg playback, chose both price recalculations, and rendered the final delivery-outcome summary alongside the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow. The confirmation visibly states that no external action was taken.
 
 ## Limits Or Risks
 

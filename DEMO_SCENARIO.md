@@ -9,6 +9,12 @@ Before the active trip exception, the demo shows a local delivery ledger with fi
 
 The recommended plan inserts Cedar Service Plaza before North Market Distribution Centre because the next direct leg would cross the seeded 14% reserve floor. Its selection balances seeded per-litre price against simulated detour cost; South Loop Fuel is cheaper per litre, but loses after its longer detour is counted. The comparison is deterministic and visibly labelled a local map simulation. It is not a claim about real roads, stations, traffic, distance, routing, fuel price, or fuel availability.
 
+## Seeded Day Playback
+
+The demo can advance through five bounded, simulated legs. At **12:00**, a severe seeded price increase changes the calculated refuel choice from Cedar Service Plaza to South Loop Fuel. At **15:00**, a seeded price drop changes it back to Cedar. Each event requires an explicit driver choice: **Recalculate route** or **Keep current route**. The UI shows the selected route and simulated cost impact; it never contacts a pricing, GPS, or dispatch service.
+
+The final report sidebar carries the completed leg record: three delivered legs, one undelivered leg, and one nobody-on-site outcome. The bounded proof records are a recipient barcode scan, delivery-location picture, adult signature, or a stated failure reason. These are local demo artifacts, not claims of hardware integration.
+
 ## Trip Context
 
 | Field | Value | Source |
@@ -50,7 +56,7 @@ PITT presents a single recommended review action:
 | Selection basis | Pre-approved corridor stop |
 | Driver review required | Yes — always |
 
-The driver must check a review toggle before a report draft can be created. No action is taken automatically.
+The driver must check a review toggle before a report draft can be created. No action is taken automatically. The delivery summary is carried beside the exception report as a separate seeded playback record.
 
 ### Alternatives Presented
 

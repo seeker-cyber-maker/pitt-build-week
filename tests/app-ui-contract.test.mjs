@@ -44,3 +44,17 @@ test("rebuilding the local plan has a visible result", async () => {
   assert.match(app, /planning = createPlanningComparison\(\);/);
   assert.match(app, /state\.rebuildCount \+= 1/);
 });
+
+test("seeded day playback exposes two explicit driver choices and a delivery report", async () => {
+  const [app, markup] = await Promise.all([
+    readFile(new URL("../app/app.js", import.meta.url), "utf8"),
+    readFile(new URL("../app/index.html", import.meta.url), "utf8")
+  ]);
+
+  assert.match(markup, /Seeded day playback/);
+  assert.match(markup, /id="recalculate-route-button"/);
+  assert.match(markup, /id="keep-route-button"/);
+  assert.match(markup, /id="delivery-report-summary"/);
+  assert.match(app, /evaluatePriceEvent/);
+  assert.match(app, /summarizeDeliveryProgress/);
+});

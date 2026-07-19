@@ -47,6 +47,18 @@
         <p class="rebuild-status" id="plan-rebuild-status" role="status" hidden></p>
       </section>
 
+      <section class="day-playback" aria-labelledby="day-title">
+        <div class="screen-heading">
+          <div><p class="eyebrow">Seeded day playback</p><h2 id="day-title">Advance the trip when new information arrives</h2></div>
+          <span class="status status-draft">Driver-controlled simulation</span>
+        </div>
+        <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can compare a recalculation with keeping the current route. Nothing runs automatically.</p>
+        <div class="day-layout">
+          <div class="panel day-timeline-panel"><h3>Trip watch</h3><div class="day-timeline" id="day-timeline"></div></div>
+          <div class="panel day-event-panel"><p class="eyebrow" id="day-current-time">Before departure</p><h3 id="day-current-title">Ready to start the simulated day</h3><p id="day-current-detail"></p><div class="event-choice" id="event-choice" hidden><p class="impact-analysis" id="impact-analysis"></p><div class="choice-actions"><button class="button primary" id="recalculate-route-button" type="button">Recalculate route</button><button class="button secondary" id="keep-route-button" type="button">Keep current route</button></div></div><p class="day-decision" id="day-decision" role="status" hidden></p><button class="button secondary" id="day-advance-button" type="button">Start simulated day</button></div>
+        </div>
+      </section>
+
       <nav class="progress" aria-label="Demo progress">
         <button data-go-to="1" data-progress="1" type="button"><b>1</b><span>Trip watch</span></button>
         <button data-go-to="2" data-progress="2" type="button"><b>2</b><span>Driver review</span></button>
@@ -94,7 +106,7 @@
         <div class="screen-heading"><div><p class="eyebrow">Reviewable output</p><h2>Trip exception report draft</h2></div><span class="status status-draft">Fallback draft</span></div>
         <div class="report-layout">
           <article class="panel report"><div class="report-meta"><span>Source</span><b>Local calculation</b><span>AI boundary</span><b>Ready for an approved endpoint</b></div><pre id="report-draft"></pre></article>
-          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded. No external action was taken.</p></aside>
+          <aside class="panel review-summary"><h3>Before it leaves this screen</h3><p>PITT does not contact carrier systems, change the planned corridor, or control a vehicle. The driver remains the decision-maker.</p><div class="delivery-report-summary" id="delivery-report-summary"></div><button class="button primary" id="confirm-button" type="button">Confirm review</button><p class="confirmation" id="confirmed-state" hidden>Review recorded. No external action was taken.</p></aside>
         </div>
         <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
       </section>

@@ -1,5 +1,6 @@
 import { calculateRisk, createFallbackReport, createRecommendation, demoTrip } from "./scenario.js";
 import { createPlanningComparison, deliveryWindowLabels } from "./planner.js";
+import { deliveryStatusLabels, evaluatePriceEvent, simulatedDayTimeline, summarizeDeliveryProgress } from "./day-playback.js";
 
 const trip = demoTrip;
 const risk = calculateRisk(trip);
@@ -12,7 +13,9 @@ const state = {
   reviewed: false,
   confirmed: false,
   mapMode: "recommended",
-  rebuildCount: 0
+  rebuildCount: 0,
+  dayIndex: -1,
+  eventChoices: {}
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -48,6 +51,8 @@ function render() {
     button.setAttribute("aria-pressed", String(selected));
   });
   renderMap();
+  renderDayPlayback();
+  renderDeliveryReportSummary();
 }
 
 function goTo(step) {
@@ -113,6 +118,78 @@ function renderPlanning() {
 
   document.querySelector("#map-plan-caption").textContent = "Choose a seeded route to inspect its local fuel and ordering outcome.";
   renderMap();
+}
+
+function renderDayPlayback() {
+  const currentItem = state.dayIndex >= 0 ? simulatedDayTimeline[state.dayIndex] : null;
+  const hasUnresolvedEvent = currentItem?.kind === "event" && !state.eventChoices[currentItem.id];
+  const nextItem = simulatedDayTimeline[state.dayIndex + 1];
+  const timeline = document.querySelector("#day-timeline");
+  const advanceButton = document.querySelector("#day-advance-button");
+  const choice = document.querySelector("#event-choice");
+  const decision = document.querySelector("#day-decision");
+
+  timeline.innerHTML = simulatedDayTimeline.map((item, index) => {
+    const complete = index < state.dayIndex;
+    const current = index === state.dayIndex;
+    const detail = item.kind === "event"
+      ? item.description
+      : `${formatKm(item.distanceKm)} · ${deliveryStatusLabels[item.delivery.status]} · ${item.delivery.proof}`;
+    return `<div class="day-row ${complete ? "is-complete" : ""} ${current ? "is-current" : ""}">
+      <time>${item.time}</time><div><strong>${item.title}</strong><small>${detail}</small></div>
+    </div>`;
+  }).join("");
+
+  if (!currentItem) {
+    document.querySelector("#day-current-time").textContent = "Before departure";
+    document.querySelector("#day-current-title").textContent = "Ready to start the simulated day";
+    document.querySelector("#day-current-detail").textContent = "Advance through five seeded delivery legs. Two price events pause for a driver choice.";
+  } else if (currentItem.kind === "event") {
+    const evaluation = evaluatePriceEvent(currentItem.id);
+    const currentStation = planning.recommended.refuel.at;
+    const recalculatedStation = evaluation.recalculatedStation;
+    const routeWouldChange = currentStation.id !== recalculatedStation.id;
+    document.querySelector("#day-current-time").textContent = currentItem.time;
+    document.querySelector("#day-current-title").textContent = currentItem.title;
+    document.querySelector("#day-current-detail").textContent = currentItem.description;
+    document.querySelector("#impact-analysis").textContent = routeWouldChange
+      ? `Impact analysis: recalculating moves the planned refuel from ${currentStation.name} to ${recalculatedStation.name}, changing the simulated refill-and-detour cost from ${formatCad(planning.recommended.refuel.estimatedPlanCostCad)} to ${formatCad(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`
+      : `Impact analysis: recalculation keeps ${recalculatedStation.name} as the lowest simulated refill-and-detour cost at ${formatCad(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`;
+  } else {
+    document.querySelector("#day-current-time").textContent = currentItem.time;
+    document.querySelector("#day-current-title").textContent = currentItem.title;
+    document.querySelector("#day-current-detail").textContent = `${formatKm(currentItem.distanceKm)} completed. Delivery status: ${deliveryStatusLabels[currentItem.delivery.status]}. ${currentItem.delivery.proof}.`;
+  }
+
+  choice.hidden = !hasUnresolvedEvent;
+  const eventChoice = currentItem?.kind === "event" ? state.eventChoices[currentItem.id] : null;
+  decision.hidden = !eventChoice;
+  if (eventChoice) {
+    decision.textContent = eventChoice === "recalculate"
+      ? `Route recalculated from the seeded ${currentItem.time} fuel prices. The planning panel now reflects the selected stop.`
+      : "Route kept. The recalculated alternative remains visible in the impact analysis.";
+  }
+
+  advanceButton.disabled = !nextItem || hasUnresolvedEvent;
+  advanceButton.textContent = !nextItem
+    ? "Simulated day complete"
+    : hasUnresolvedEvent
+      ? "Choose an event response"
+      : state.dayIndex < 0
+        ? "Start simulated day"
+        : `Advance to ${nextItem.title}`;
+}
+
+function renderDeliveryReportSummary() {
+  const summary = summarizeDeliveryProgress(state.dayIndex);
+  const destination = document.querySelector("#delivery-report-summary");
+  if (summary.completedLegs.length === 0) {
+    destination.innerHTML = "<strong>Delivery outcomes</strong><br>Seeded day playback has not produced a delivery outcome yet.";
+    return;
+  }
+
+  const rows = summary.completedLegs.map((leg) => `<li><strong>${leg.title}</strong><br>${deliveryStatusLabels[leg.delivery.status]} · ${leg.delivery.proof}</li>`).join("");
+  destination.innerHTML = `<strong>Delivery outcomes</strong><br>${summary.completedLegs.length} of 5 simulated delivery legs · ${formatKm(summary.completedDistanceKm)}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
 }
 
 function renderMap() {
@@ -182,6 +259,27 @@ document.querySelector("#rebuild-plan-button").addEventListener("click", () => {
   state.rebuildCount += 1;
   state.mapMode = "recommended";
   renderPlanning();
+  render();
+});
+document.querySelector("#day-advance-button").addEventListener("click", () => {
+  if (state.dayIndex + 1 >= simulatedDayTimeline.length) return;
+  state.dayIndex += 1;
+  render();
+});
+document.querySelector("#recalculate-route-button").addEventListener("click", () => {
+  const currentItem = simulatedDayTimeline[state.dayIndex];
+  if (!currentItem || currentItem.kind !== "event") return;
+  const evaluation = evaluatePriceEvent(currentItem.id);
+  planning = evaluation.recalculated;
+  state.eventChoices[currentItem.id] = "recalculate";
+  state.mapMode = "recommended";
+  renderPlanning();
+  render();
+});
+document.querySelector("#keep-route-button").addEventListener("click", () => {
+  const currentItem = simulatedDayTimeline[state.dayIndex];
+  if (!currentItem || currentItem.kind !== "event") return;
+  state.eventChoices[currentItem.id] = "keep";
   render();
 });
 document.querySelectorAll("[data-go-to]").forEach((button) => {

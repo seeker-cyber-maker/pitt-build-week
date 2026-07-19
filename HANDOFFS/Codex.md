@@ -1,6 +1,6 @@
 # Harness Handoff: Codex
 
-- **Status:** active correction in progress
+- **Status:** current correction verified locally; ready to publish
 - **Lane:** Integration
 - **Branch/worktree:** `harness/codex-integration`
 - **Started:** 2026-07-18
@@ -24,15 +24,19 @@
 - Added display-only metric/imperial and CAD/USD local-money controls. Distances and fuel volumes convert between physical units; currency values keep their seeded local numeric value and only change label, with an explicit no-exchange-rate disclosure.
 - Added a compact `pitt.trip_handoff.v1` Lua-table machine handoff to the final report. It includes route, refuel, completed leg data, units, and review state; the copy action remains local and the payload explicitly records `external_action = false`.
 - Diagnosed a public toggle failure as stale GitHub Pages module caching: newer HTML had controls while an older `app.js` lacked their listeners. The module now uses a versioned query string; the deployed controls were clicked and verified live.
+- Made Trip Watch authoritative for the report gate: review opens only after an early route closure or normal route completion.
+- An early route closure now preserves recorded delivery results and marks each remaining delivery as `Undelivered` with `Route closed early before delivery attempt`; the report and Lua handoff share that disposition.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 16/16 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; price-event transitions; delivery-outcome summary; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Result:** 19/19 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; price-event transitions; delivery-outcome summary; scope-bounded recommendation; and provenance-bearing local fallback report.
 - **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
 - **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
 - **Result:** Desktop and mobile walkthroughs completed the five-leg playback, chose both price recalculations, and rendered the final delivery-outcome summary alongside the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow. The confirmation visibly states that no external action was taken.
+- **Command or check:** Local early-close walkthrough.
+- **Result:** Closing after leg 1 produced one recorded `Delivered` outcome and four explicit `Undelivered` outcomes in both the visible report and `pitt.trip_handoff.v1`.
 
 ## Limits Or Risks
 
@@ -42,5 +46,5 @@
 
 ## Next Small Action
 
-- **Current correction:** make the upper seeded Trip Watch the authoritative route state. The lower review/report flow must display the current Trip Watch context and remain unavailable until the driver closes the route early or the seeded route completes normally.
-- **Acceptance:** an early close explicitly unlocks review; normal completion unlocks it automatically; the final report and Lua handoff carry the same Trip Watch leg summary. Keep the seeded/no-live-data boundary.
+- **Current correction:** published Trip Watch authority and early-close delivery disposition.
+- **Acceptance:** deploy the current commit to GitHub Pages and smoke-check that the cache-keyed module is served. Keep the seeded/no-live-data boundary.

@@ -197,12 +197,14 @@ function renderDayPlayback() {
   const choice = document.querySelector("#event-choice");
   const decision = document.querySelector("#day-decision");
 
+  const earlyClosureOutcomes = state.routeCloseReason === "early" ? createDeliveryOutcomeSummary() : null;
   timeline.innerHTML = simulatedDayTimeline.map((item, index) => {
     const complete = index < state.dayIndex;
     const current = index === state.dayIndex;
+    const delivery = earlyClosureOutcomes?.byTitle.get(item.title) ?? item.delivery;
     const detail = item.kind === "event"
       ? item.description
-      : `${formatDistance(item.distanceKm)} · ${deliveryStatusLabels[item.delivery.status]} · ${item.delivery.proof}`;
+      : `${formatDistance(item.distanceKm)} · ${deliveryStatusLabels[delivery.status]} · ${delivery.proof}`;
     return `<div class="day-row ${complete ? "is-complete" : ""} ${current ? "is-current" : ""}">
       <time>${item.time}</time><div><strong>${item.title}</strong><small>${detail}</small></div>
     </div>`;
@@ -253,15 +255,42 @@ function renderDayPlayback() {
 }
 
 function renderDeliveryReportSummary() {
-  const summary = summarizeDeliveryProgress(state.dayIndex);
+  const summary = createDeliveryOutcomeSummary();
   const destination = document.querySelector("#delivery-report-summary");
-  if (summary.completedLegs.length === 0) {
+  if (summary.legs.length === 0) {
     destination.innerHTML = "<strong>Delivery outcomes</strong><br>Seeded day playback has not produced a delivery outcome yet.";
     return;
   }
 
-  const rows = summary.completedLegs.map((leg) => `<li><strong>${leg.title}</strong><br>${deliveryStatusLabels[leg.delivery.status]} · ${leg.delivery.proof}</li>`).join("");
-  destination.innerHTML = `<strong>Delivery outcomes</strong><br>${summary.completedLegs.length} of 5 simulated delivery legs · ${formatDistance(summary.completedDistanceKm)}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
+  const rows = summary.legs.map((leg) => `<li><strong>${leg.title}</strong><br>${deliveryStatusLabels[leg.delivery.status]} · ${leg.delivery.proof}</li>`).join("");
+  const disposition = state.routeCloseReason === "early"
+    ? `Route closed early after ${summary.recordedLegs.length} recorded leg${summary.recordedLegs.length === 1 ? "" : "s"}. Remaining stops are marked undelivered.`
+    : `${summary.recordedLegs.length} of 5 simulated delivery legs recorded · ${formatDistance(summary.completedDistanceKm)}`;
+  destination.innerHTML = `<strong>Delivery outcomes</strong><br>${disposition}<br>Delivered ${summary.counts.delivered} · Undelivered ${summary.counts.undelivered} · Nobody on site ${summary.counts.nobody_on_site}<ul>${rows}</ul>`;
+}
+
+function createDeliveryOutcomeSummary() {
+  const recorded = summarizeDeliveryProgress(state.dayIndex);
+  const recordedTitles = new Set(recorded.completedLegs.map((leg) => leg.title));
+  const allLegs = simulatedDayTimeline.filter((item) => item.kind === "leg");
+  const legs = state.routeCloseReason === "early"
+    ? allLegs.map((leg) => recordedTitles.has(leg.title)
+      ? leg
+      : {
+          ...leg,
+          delivery: { status: "undelivered", proof: "Route closed early before delivery attempt" }
+        })
+    : recorded.completedLegs;
+  const counts = Object.fromEntries(Object.keys(deliveryStatusLabels).map((key) => [key, 0]));
+  for (const leg of legs) counts[leg.delivery.status] += 1;
+
+  return {
+    legs,
+    byTitle: new Map(legs.map((leg) => [leg.title, leg.delivery])),
+    recordedLegs: recorded.completedLegs,
+    completedDistanceKm: recorded.completedDistanceKm,
+    counts
+  };
 }
 
 function machineToken(value) {
@@ -277,11 +306,11 @@ function machineFuelPrice(value) {
 }
 
 function createMachineHandoff() {
-  const summary = summarizeDeliveryProgress(state.dayIndex);
+  const summary = createDeliveryOutcomeSummary();
   const refuel = planning.recommended.refuel;
   const distanceUnit = state.displayUnit === "imperial" ? "mi" : "km";
   const volumeUnit = state.displayUnit === "imperial" ? "us_gal" : "litre";
-  const legs = summary.completedLegs.map((leg) => `    { id = "${machineToken(leg.title)}", status = "${leg.delivery.status}", proof = "${machineToken(leg.delivery.proof)}" },`);
+  const legs = summary.legs.map((leg) => `    { id = "${machineToken(leg.title)}", status = "${leg.delivery.status}", proof = "${machineToken(leg.delivery.proof)}" },`);
   return [
     "return {",
     "  schema = \"pitt.trip_handoff.v1\",",
@@ -291,7 +320,7 @@ function createMachineHandoff() {
     "  external_action = false,",
     `  units = { distance = \"${distanceUnit}\", volume = \"${volumeUnit}\", money = \"${state.displayCurrency}\", money_basis = \"seeded_local_no_conversion\" },`,
     `  refuel = { station = \"${refuel.at.id}\", price = ${machineFuelPrice(refuel.at.pricePerLitreCad).toFixed(3)}, price_unit = \"${state.displayCurrency}_per_${volumeUnit}\", estimated_cost = ${refuel.estimatedPlanCostCad.toFixed(2)} },`,
-    `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, completed_legs = ${summary.completedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)} },`,
+    `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, recorded_legs = ${summary.recordedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)}, close_reason = "${state.routeCloseReason ?? "open"}" },`,
     "  delivery_legs = {",
     ...legs,
     "  },",

@@ -101,4 +101,6 @@ test("Trip Watch is the route authority before review can be opened", async () =
   assert.match(app, /routeCloseReason = "completed"/);
   assert.match(app, /routeCloseReason = "early"/);
   assert.match(app, /if \(!state\.routeClosed\) return/);
+  assert.match(app, /Route closed early before delivery attempt/);
+  assert.match(app, /status: "undelivered"/);
 });

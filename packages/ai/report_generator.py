@@ -1,4 +1,16 @@
-"""Report generation with AI assistance and deterministic fallback."""
+"""Report generation aligned with PITT Report Draft Contract v1.
+
+- Input:  pitt.report-input.v1
+- Output: pitt.report-draft.v1
+
+The adapter attempts AI assistance only when:
+  1. All provider env vars are set (PITT_AI_*)
+  2. outbound_provider_authorized is True in the input
+  3. The provider call succeeds and passes structured validation
+
+Otherwise, it returns a deterministic fallback that preserves every
+authoritative fact verbatim.
+"""
 
 from __future__ import annotations
 
@@ -13,34 +25,33 @@ logger = logging.getLogger(__name__)
 
 
 def generate_report(scenario: ScenarioPayload) -> ReportResult:
-    """Generate a report draft from scenario data.
-    
+    """Generate a report draft from a structured scenario payload.
+
     Args:
-        scenario: Structured scenario payload from the scenario engine.
-    
+        scenario: ScenarioPayload aligned with pitt.report-input.v1.
+
     Returns:
-        ReportResult with either AI-assisted content or deterministic fallback.
-    
-    The function will attempt to use the configured AI provider if available,
-    but will gracefully fall back to a deterministic report if:
-    - Configuration is incomplete
-    - HTTP request fails
-    - Provider response is malformed
+        ReportResult aligned with pitt.report-draft.v1.
     """
     config = ProviderConfig.from_environment()
-    
+
+    # --- Fast path: if provider is not authorized, skip network entirely ---
+    if not scenario.outbound_provider_authorized:
+        logger.info("outbound_provider_authorized=false; using deterministic fallback.")
+        return _generate_deterministic_report(scenario)
+
     if not config.is_configured():
         logger.info(
             "AI provider not configured, using deterministic fallback. Config: %s",
-            config.mask_for_logging()
+            config.mask_for_logging(),
         )
         return _generate_deterministic_report(scenario)
-    
+
     logger.info(
         "Attempting AI-assisted report generation. Config: %s",
-        config.mask_for_logging()
+        config.mask_for_logging(),
     )
-    
+
     try:
         return _generate_ai_assisted_report(scenario, config)
     except Exception as e:
@@ -48,79 +59,66 @@ def generate_report(scenario: ScenarioPayload) -> ReportResult:
             "AI-assisted generation failed (%s: %s), falling back to deterministic report",
             type(e).__name__,
             str(e),
-            exc_info=True
+            exc_info=True,
         )
         return _generate_deterministic_report(scenario)
 
 
 def _generate_deterministic_report(scenario: ScenarioPayload) -> ReportResult:
-    """Generate a deterministic report without AI assistance."""
-    
-    # Extract key metrics from deterministic calculation
-    calc = scenario.deterministic_calculation
-    fuel_deficit = scenario.reserve_threshold_liters - scenario.current_fuel_liters
-    
-    summary = (
-        f"Trip {scenario.trip_id}: {scenario.exception_type.replace('_', ' ').title()} Required"
+    """Produce a deterministic fallback report (pitt.report-draft.v1)."""
+
+    # Build deterministic facts from the authoritative assessment
+    deterministic_facts = {
+        "scenario_id": scenario.scenario_id,
+        "event_type": scenario.event_type,
+        "delay_minutes": scenario.delay_minutes,
+        "projected_arrival_reserve_percent": scenario.projected_arrival_reserve_percent,
+        "minimum_reserve_percent": scenario.minimum_reserve_percent,
+        "reserve_gap_percent": scenario.reserve_gap_percent,
+        "recommended_stop": scenario.stop_label,
+        "stop_distance_km": scenario.stop_distance_km,
+        "stop_detour_minutes": scenario.stop_detour_minutes,
+    }
+
+    narrative = (
+        f"A {scenario.event_source} {scenario.delay_minutes}-minute delay changes projected fuel "
+        f"reserve to {scenario.projected_arrival_reserve_percent}%, below the "
+        f"{scenario.minimum_reserve_percent}% policy floor. "
+        f"The supplied review option is {scenario.stop_label}, "
+        f"{scenario.stop_distance_km} km away with a planned "
+        f"{scenario.stop_detour_minutes}-minute detour. "
+        f"Driver review is required before any external action."
     )
-    
-    situation = (
-        f"Vehicle {scenario.vehicle_id} carrying {scenario.cargo_type} "
-        f"from {scenario.current_location} to {scenario.destination}. "
-        f"Current fuel: {scenario.current_fuel_liters:.1f}L, "
-        f"reserve threshold: {scenario.reserve_threshold_liters:.1f}L. "
-        f"Deficit: {fuel_deficit:.1f}L. "
-        f"Trigger: {scenario.trigger_reason}."
-    )
-    
-    recommended = (
-        f"{scenario.recommended_action} at {scenario.recommended_location}. "
-        f"Confidence: {scenario.confidence_level}."
-    )
-    
-    reasoning = (
-        f"Deterministic calculation shows fuel reserve below safe threshold. "
-        f"Distance to destination: {scenario.distance_to_destination_km:.1f}km. "
-        f"Based on: {', '.join(f'{k}={v}' for k, v in calc.items())}."
-    )
-    
+
     return ReportResult(
-        report_type="deterministic_fallback",
-        summary=summary,
-        situation_description=situation,
-        recommended_action=recommended,
-        reasoning=reasoning,
-        deterministic_facts={
-            "trip_id": scenario.trip_id,
-            "current_fuel_liters": scenario.current_fuel_liters,
-            "reserve_threshold_liters": scenario.reserve_threshold_liters,
-            "distance_to_destination_km": scenario.distance_to_destination_km,
-            "exception_type": scenario.exception_type,
-        },
-        ai_contribution=None,
-        confidence_notes=f"Deterministic calculation, {scenario.confidence_level} confidence recommendation.",
-        requires_driver_confirmation=True,
-        alternatives_presented=scenario.alternatives,
+        schema_version="pitt.report-draft.v1",
+        status="fallback_ready",
+        provenance_kind="deterministic_fallback",
+        deterministic_facts=deterministic_facts,
+        narrative=narrative,
+        review_required=True,
+        review_confirmed=False,
+        limitations=[
+            "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+            "This draft does not control a vehicle or issue a driving instruction.",
+        ],
     )
 
 
 def _generate_ai_assisted_report(
     scenario: ScenarioPayload, config: ProviderConfig
 ) -> ReportResult:
-    """Generate an AI-assisted report using the configured provider.
-    
+    """Attempt AI-assisted report using a configured provider.
+
     Raises:
-        ValueError: If the provider response is malformed.
-        ConnectionError: If the HTTP request fails.
-        TimeoutError: If the request times out.
+        ConnectionError: HTTP or transport failure.
+        ValueError: Malformed or empty provider response.
     """
     import urllib.request
     import urllib.error
-    
-    # Build prompt with clear boundaries
+
     prompt = _build_prompt(scenario)
-    
-    # Prepare request
+
     request_body = {
         "model": config.model,
         "messages": [
@@ -130,77 +128,74 @@ def _generate_ai_assisted_report(
                     "You are a delivery exception report assistant. "
                     "Generate a clear, professional report for driver review. "
                     "Do not make autonomous decisions or change the recommended action. "
+                    "Do not introduce extra facts beyond those supplied. "
                     "Focus on clear communication of the situation and recommendation."
-                )
+                ),
             },
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "user", "content": prompt},
         ],
         "max_tokens": 500,
         "temperature": 0.3,
     }
-    
-    request_json = json.dumps(request_body).encode('utf-8')
-    
-    # Make request (no secrets in logs)
+
+    request_json = json.dumps(request_body).encode("utf-8")
+
     url = f"{config.base_url}/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {config.api_key}",
     }
-    
+
     req = urllib.request.Request(url, data=request_json, headers=headers)
-    
+
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
-            response_data = json.loads(response.read().decode('utf-8'))
+            response_data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         raise ConnectionError(f"HTTP {e.code}: {e.reason}") from e
     except urllib.error.URLError as e:
         raise ConnectionError(f"Connection failed: {e.reason}") from e
-    
-    # Parse response
+
     try:
         ai_text = response_data["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as e:
         raise ValueError(f"Malformed provider response: {e}") from e
-    
+
     if not ai_text or not isinstance(ai_text, str):
         raise ValueError("Empty or invalid AI response content")
-    
-    # Build structured result
-    return _structure_ai_response(scenario, ai_text)
+
+    return _structure_ai_response(scenario, ai_text, config)
 
 
 def _build_prompt(scenario: ScenarioPayload) -> str:
     """Build the prompt for the AI provider."""
-    calc_summary = ", ".join(f"{k}={v}" for k, v in scenario.deterministic_calculation.items())
-    
     return f"""Generate a professional delivery exception report based on this scenario:
 
 **Trip Details:**
-- Trip ID: {scenario.trip_id}
-- Driver: {scenario.driver_name}
-- Vehicle: {scenario.vehicle_id}
-- Route: {scenario.current_location} → {scenario.destination}
-- Cargo: {scenario.cargo_type}
+- Scenario: {scenario.scenario_id}
+- Driver: {scenario.driver_display_alias}
+- Cargo: {scenario.cargo_category}
+- Destination: {scenario.destination_label}
+- Route: {scenario.route_label}
 
-**Exception:**
-- Type: {scenario.exception_type}
-- Trigger: {scenario.trigger_reason}
-- Current fuel: {scenario.current_fuel_liters:.1f}L
-- Reserve threshold: {scenario.reserve_threshold_liters:.1f}L
-- Distance remaining: {scenario.distance_to_destination_km:.1f}km
+**Event:**
+- Type: {scenario.event_type}
+- Delay: {scenario.delay_minutes} minutes
+- Source: {scenario.event_source}
 
-**Deterministic Calculation:**
-{calc_summary}
+**Deterministic Assessment:**
+- Current fuel: {scenario.current_fuel_percent}%
+- Projected reserve: {scenario.projected_arrival_reserve_percent}%
+- Policy floor: {scenario.minimum_reserve_percent}%
+- Reserve gap: {scenario.reserve_gap_percent}%
+- Status: {scenario.assessment_status}
 
-**Recommendation:**
-- Action: {scenario.recommended_action}
-- Location: {scenario.recommended_location}
-- Confidence: {scenario.confidence_level}
+**Proposed Decision:**
+- Type: {scenario.decision_type}
+- Stop: {scenario.stop_label}
+- Distance: {scenario.stop_distance_km} km
+- Detour: {scenario.stop_detour_minutes} minutes
+- Basis: {scenario.selection_basis}
 - Alternatives: {', '.join(scenario.alternatives) if scenario.alternatives else 'None'}
 
 Please write a clear, professional report that:
@@ -212,30 +207,35 @@ Please write a clear, professional report that:
 Keep the tone professional and concise. Do not change the recommended action."""
 
 
-def _structure_ai_response(scenario: ScenarioPayload, ai_text: str) -> ReportResult:
-    """Structure the AI response into a ReportResult."""
-    
-    # Simple parsing: split by paragraphs and identify sections
-    lines = [l.strip() for l in ai_text.split('\n') if l.strip()]
-    
-    summary = lines[0] if lines else "Report generated"
-    situation = "\n".join(lines[:2]) if len(lines) >= 2 else ai_text[:200]
-    
+def _structure_ai_response(
+    scenario: ScenarioPayload, ai_text: str, config: ProviderConfig
+) -> ReportResult:
+    """Structure a validated AI response into a pitt.report-draft.v1 result."""
+
+    deterministic_facts = {
+        "scenario_id": scenario.scenario_id,
+        "event_type": scenario.event_type,
+        "delay_minutes": scenario.delay_minutes,
+        "projected_arrival_reserve_percent": scenario.projected_arrival_reserve_percent,
+        "minimum_reserve_percent": scenario.minimum_reserve_percent,
+        "reserve_gap_percent": scenario.reserve_gap_percent,
+        "recommended_stop": scenario.stop_label,
+        "stop_distance_km": scenario.stop_distance_km,
+        "stop_detour_minutes": scenario.stop_detour_minutes,
+    }
+
     return ReportResult(
-        report_type="ai_assisted",
-        summary=summary,
-        situation_description=situation,
-        recommended_action=f"{scenario.recommended_action} at {scenario.recommended_location}",
-        reasoning=ai_text,
-        deterministic_facts={
-            "trip_id": scenario.trip_id,
-            "current_fuel_liters": scenario.current_fuel_liters,
-            "reserve_threshold_liters": scenario.reserve_threshold_liters,
-            "distance_to_destination_km": scenario.distance_to_destination_km,
-            "exception_type": scenario.exception_type,
-        },
-        ai_contribution="Narrative generated by AI provider for clarity and professionalism",
-        confidence_notes=f"AI-assisted report based on {scenario.confidence_level} confidence recommendation",
-        requires_driver_confirmation=True,
-        alternatives_presented=scenario.alternatives,
+        schema_version="pitt.report-draft.v1",
+        status="draft_ready",
+        provenance_kind="ai_assisted",
+        provenance_model=config.model,
+        provenance_base_url=config.base_url,
+        deterministic_facts=deterministic_facts,
+        narrative=ai_text.strip(),
+        review_required=True,
+        review_confirmed=False,
+        limitations=[
+            "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+            "This draft does not control a vehicle or issue a driving instruction.",
+        ],
     )

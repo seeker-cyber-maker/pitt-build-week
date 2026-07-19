@@ -1,39 +1,31 @@
 # Harness Handoff: Patrick
 
-- **Status:** completed
+- **Status:** ready for integration
 - **Lane:** AI/report boundary
 - **Branch/worktree:** `harness/patrick-ai-report`
 - **Started:** 2026-07-18
-- **Completed:** 2026-07-18
+- **Completed:** 2026-07-19
 
 ## Changed Or Investigated
 
-### Created Files
+### Core Module (`packages/ai/`)
 
-**Core Module (`packages/ai/`):**
-- `__init__.py` - Public API exports
-- `models.py` - Data models (`ScenarioPayload`, `ReportResult`)
-- `config.py` - Provider configuration with secret masking
-- `report_generator.py` - Main generation logic with fallback
-- `README.md` - Complete documentation with usage examples
+Aligned with **PITT Report Draft Contract v1** (`CONTROL/CONTRACTS/REPORT_DRAFT_V1.md`).
 
-**Tests (`tests/ai/`):**
-- `__init__.py` - Test package marker
-- `test_report_generator.py` - Comprehensive test suite (18 tests)
+- `__init__.py` — Public API exports (`generate_report`, `ReportResult`, `ScenarioPayload`)
+- `models.py` — `ScenarioPayload.from_dict()` accepts `pitt.report-input.v1`; `ReportResult.to_dict()` emits `pitt.report-draft.v1`
+- `config.py` — `ProviderConfig` with secret masking and safe `__repr__`
+- `report_generator.py` — `generate_report()` with deterministic fallback; respects `outbound_provider_authorized`
+- `README.md` — Documentation aligned with contract v1
+- `example_usage.py` — Demonstration using canonical seeded fixtures
 
-### Implementation Details
+### Tests (`tests/ai/`)
 
-The module implements a provider-neutral report generator with:
-
-1. **Deterministic Fallback**: Always available, never requires configuration
-2. **AI-Assisted Path**: Attempts to use configured OpenAI-compatible endpoint
-3. **Graceful Degradation**: Falls back on any error (config, network, malformed response)
-4. **Secret Safety**: Never logs API keys, uses masked logging
-5. **Provenance Tracking**: Clear distinction between deterministic and AI-assisted content
+- `test_report_generator.py` — 21 tests covering contract alignment, fixture matching, fallback paths, AI success, security
 
 ## Evidence
 
-### Command
+### Test Command
 
 ```bash
 python3 -m unittest discover -s tests/ai -p "test_*.py" -v
@@ -42,105 +34,49 @@ python3 -m unittest discover -s tests/ai -p "test_*.py" -v
 ### Result
 
 ```
-Ran 18 tests in 0.019s
-
+Ran 21 tests in 0.019s
 OK
 ```
 
-### Test Coverage
+### Fixture Alignment
 
-All acceptance criteria met:
+The seeded input fixture (`CONTROL/fixtures/report-input.seeded-demo.v1.json`) produces output that matches the fallback fixture (`CONTROL/fixtures/report-output.fallback.v1.json`) exactly.
 
-✅ **Test 1-3: Deterministic Fallback**
-- `test_fallback_when_config_missing` - Missing env vars → deterministic
-- `test_fallback_response_structure` - All required fields present
-- `test_fallback_contains_scenario_data` - Key metrics included
+### Contract Invariants Verified
 
-✅ **Test 4-8: AI Provider Errors**
-- `test_http_error_falls_back` - HTTP 500 → fallback
-- `test_connection_error_falls_back` - Connection refused → fallback
-- `test_timeout_falls_back` - Timeout → fallback
-- `test_malformed_response_falls_back` - Invalid JSON structure → fallback
-- `test_empty_response_falls_back` - Empty AI content → fallback
-
-✅ **Test 9: Successful AI Path**
-- `test_valid_ai_response` - Valid response → AI-assisted report
-
-✅ **Test 10-14: Configuration & Security**
-- `test_config_not_configured_when_empty` - Detects missing config
-- `test_config_not_configured_when_partial` - Detects incomplete config
-- `test_config_is_configured_when_complete` - Recognizes valid config
-- `test_secrets_are_masked_in_logging` - API keys redacted
-- `test_secrets_not_in_string_representation` - No key leakage
-
-✅ **Test 15-18: Data Validation**
-- `test_deterministic_cannot_claim_ai_contribution` - Type validation
-- `test_ai_assisted_must_declare_contribution` - Type validation
-- `test_valid_deterministic_report` - Structure validation
-- `test_valid_ai_assisted_report` - Structure validation
-
-### Module Contract
-
-**Input:** `ScenarioPayload` with trip details, exception data, and deterministic calculation
-**Output:** `ReportResult` with marked provenance (`ai_assisted` or `deterministic_fallback`)
-
-See `packages/ai/README.md` for complete API documentation.
+- ✅ `schema_version` == `pitt.report-input.v1` on input, `pitt.report-draft.v1` on output
+- ✅ `scenario.mode` == `seeded_demo` respected
+- ✅ `deterministic_assessment` preserved verbatim in output facts
+- ✅ `driver_review_required` remains `True` in output
+- ✅ Missing/unauthorized config returns `fallback_ready`
+- ✅ HTTP errors, malformed responses, timeouts all return safe fallback
+- ✅ Successful AI output preserves all deterministic facts
+- ✅ No secrets in logs or string representations
+- ✅ No network call when `outbound_provider_authorized: false`
 
 ## Limits Or Risks
 
-### Known Limitations
+1. **Provider Format:** OpenAI-compatible chat completions only
+2. **Timeout:** Hardcoded 10 seconds (could be configurable)
+3. **No Retry:** Single attempt; fast-fail to fallback
+4. **Schema Evolution:** If `pitt.report-input.v2` is defined, `models.py` will need an update
 
-1. **Provider Format**: Currently supports OpenAI-compatible chat completion format only
-2. **Timeout**: Hardcoded 10-second timeout (could be configurable)
-3. **No Retry Logic**: Single attempt per request (fast-fail to fallback)
-4. **Simple Response Parsing**: Assumes AI returns well-structured text
+## Integration Questions (from Codex)
 
-### Integration Dependencies
-
-1. **Scenario Engine**: Needs to provide `ScenarioPayload` with agreed schema
-2. **UI Layer**: Should display `report_type` to show provenance to user
-3. **Configuration**: `.env` file with AI vars (or rely on fallback for testing)
-
-### Security Notes
-
-- API keys managed via environment variables only
-- No secrets in Git, logs, or test output
-- `mask_for_logging()` must be used for any config logging
+1. Is the current report structure enough for a driver to explain an exception after the fact without turning it into paperwork theater?
+2. Which one or two fields would make a report more useful to dispatch while remaining non-sensitive and optional?
+3. Does the distinction between `observed`, `seeded`, and `unknown` need a visible field in the narrative, or is provenance plus limitations sufficient?
+4. Which phrasing sounds like a helpful draft rather than a system issuing orders to a driver?
 
 ## Next Small Action
 
-**For Integration Lane:**
+- Integration lane (Codex) reviews PR #2 and confirms contract alignment before merge.
+- After merge, scenario engine and UI lanes wire `generate_report()` into the end-to-end flow.
 
-1. **Verify Schema**: Confirm `ScenarioPayload` fields match what scenario engine will provide
-2. **Wire to UI**: Connect `generate_report()` to the exception-handling flow
-3. **Configure Provider**: Add real `.env` with API credentials for end-to-end demo
-4. **Test E2E**: Run a complete trip scenario through the full pipeline
+## Branch Status
 
-**Branch Status:**
 - All code committed to `harness/patrick-ai-report`
-- Tests passing (18/18)
-- Ready for PR review
+- Tests passing (21/21)
+- Fixture alignment verified
+- PR #2 updated and open
 - No merge to `main` without integration verification
-
-**Suggested Acceptance Check for Integration:**
-```bash
-# 1. Test deterministic path (no config)
-unset PITT_AI_BASE_URL PITT_AI_API_KEY PITT_AI_MODEL
-python3 -c "from packages.ai import generate_report; from packages.ai.models import ScenarioPayload; print(generate_report(ScenarioPayload(...)).report_type)"
-# Expected: "deterministic_fallback"
-
-# 2. Test AI path (with config)
-export PITT_AI_BASE_URL="https://api.openai.com/v1"
-export PITT_AI_API_KEY="sk-..."
-export PITT_AI_MODEL="gpt-4"
-python3 -c "from packages.ai import generate_report; ..."
-# Expected: "ai_assisted" (or fallback on error)
-```
-
-## Integration Questions
-
-1. **Schema Alignment**: Should I update `ScenarioPayload` to match exact scenario engine output?
-2. **Provider Choice**: OpenAI, Anthropic, or local model endpoint for demo?
-3. **Error Reporting**: Should UI show why AI failed, or just "using fallback"?
-4. **Timeout Config**: Make timeout configurable via env var?
-5. **Logging Level**: Should fallback be INFO (expected) or WARNING (noteworthy)?

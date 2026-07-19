@@ -1,405 +1,357 @@
-"""Tests for AI-assisted report generation."""
+"""Tests for PITT AI report generator aligned with Report Draft Contract v1.
+
+Coverage:
+- Deterministic fallback (no config, unauthorized provider, all error paths)
+- AI-assisted success path (mocked HTTP)
+- Contract alignment with Codex fixtures
+- Security (secret masking)
+"""
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-# Add parent directory to path for imports
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
-from packages.ai.models import ScenarioPayload, ReportResult
-from packages.ai.report_generator import generate_report
 from packages.ai.config import ProviderConfig
+from packages.ai.models import ReportResult, ScenarioPayload
+from packages.ai.report_generator import generate_report
 
+
+# ---------------------------------------------------------------------------
+# Fixture helpers
+# ---------------------------------------------------------------------------
+
+SEEDED_INPUT = {
+    "schema_version": "pitt.report-input.v1",
+    "scenario": {"id": "PITT-DEMO-017", "mode": "seeded_demo"},
+    "trip": {
+        "driver_display_alias": "Jordan Lee",
+        "cargo_category": "refrigerated groceries",
+        "destination_label": "North Market Distribution Centre",
+        "route_label": "A-40 East / local delivery corridor",
+    },
+    "event": {
+        "type": "delay_and_reserve_risk",
+        "delay_minutes": 28,
+        "source": "seeded local scenario",
+    },
+    "deterministic_assessment": {
+        "calculation_version": "pitt.reserve-risk.v1",
+        "current_fuel_percent": 24,
+        "projected_arrival_reserve_percent": 7,
+        "minimum_reserve_percent": 12,
+        "reserve_gap_percent": -5,
+        "status": "urgent",
+    },
+    "proposed_decision": {
+        "type": "fuel_stop_review",
+        "stop_label": "Northbound Service Plaza",
+        "distance_km": 19,
+        "detour_minutes": 15,
+        "selection_basis": "pre-approved demo stop",
+        "alternatives": [
+            "Continue without stopping: projected reserve remains below policy.",
+            "Contact dispatch for a different approved stop: review needed before changing the plan.",
+        ],
+        "driver_review_required": True,
+    },
+    "data_handling": {
+        "provenance": "seeded_local",
+        "retention": "session_only",
+        "outbound_provider_authorized": False,
+    },
+}
+
+EXPECTED_FALLBACK = {
+    "schema_version": "pitt.report-draft.v1",
+    "status": "fallback_ready",
+    "provenance": {"kind": "deterministic_fallback"},
+    "deterministic_facts": {
+        "scenario_id": "PITT-DEMO-017",
+        "event_type": "delay_and_reserve_risk",
+        "delay_minutes": 28,
+        "projected_arrival_reserve_percent": 7,
+        "minimum_reserve_percent": 12,
+        "reserve_gap_percent": -5,
+        "recommended_stop": "Northbound Service Plaza",
+        "stop_distance_km": 19,
+        "stop_detour_minutes": 15,
+    },
+    "narrative": (
+        "A seeded local scenario 28-minute delay changes projected fuel "
+        "reserve to 7%, below the 12% policy floor. "
+        "The supplied review option is Northbound Service Plaza, "
+        "19 km away with a planned 15-minute detour. "
+        "Driver review is required before any external action."
+    ),
+    "review": {"required": True, "confirmed": False},
+    "limitations": [
+        "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+        "This draft does not control a vehicle or issue a driving instruction.",
+    ],
+}
+
+
+def _clear_env():
+    for key in ("PITT_AI_BASE_URL", "PITT_AI_API_KEY", "PITT_AI_MODEL"):
+        os.environ.pop(key, None)
+
+
+def _set_env():
+    os.environ["PITT_AI_BASE_URL"] = "https://api.example.com/v1"
+    os.environ["PITT_AI_API_KEY"] = "sk-test-secret"
+    os.environ["PITT_AI_MODEL"] = "gpt-4"
+
+
+# ---------------------------------------------------------------------------
+# Contract fixture tests
+# ---------------------------------------------------------------------------
+
+class TestContractFixture(unittest.TestCase):
+    """Verify exact alignment with Codex fixtures."""
+
+    def test_seeded_input_produces_fallback_output(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+        self.assertEqual(result.deterministic_facts, EXPECTED_FALLBACK["deterministic_facts"])
+        self.assertEqual(result.narrative, EXPECTED_FALLBACK["narrative"])
+        self.assertTrue(result.review_required)
+        self.assertFalse(result.review_confirmed)
+        self.assertEqual(result.limitations, EXPECTED_FALLBACK["limitations"])
+
+    def test_output_matches_fixture_dict(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        self.assertEqual(result.to_dict(), EXPECTED_FALLBACK)
+
+
+# ---------------------------------------------------------------------------
+# Deterministic fallback tests
+# ---------------------------------------------------------------------------
 
 class TestDeterministicFallback(unittest.TestCase):
-    """Test deterministic fallback behavior."""
-    
-    def setUp(self):
-        """Clear environment variables before each test."""
-        for key in ["PITT_AI_BASE_URL", "PITT_AI_API_KEY", "PITT_AI_MODEL"]:
-            os.environ.pop(key, None)
-    
-    def _create_sample_scenario(self) -> ScenarioPayload:
-        """Create a sample scenario for testing."""
-        return ScenarioPayload(
-            trip_id="TRIP-2026-001",
-            driver_name="John Doe",
-            vehicle_id="TRUCK-42",
-            current_location="Highway 101, Exit 42",
-            destination="Cold Storage Depot B",
-            cargo_type="Refrigerated Pharmaceuticals",
-            exception_type="urgent_fuel_stop",
-            trigger_reason="Route delay + high fuel consumption",
-            current_fuel_liters=45.0,
-            reserve_threshold_liters=60.0,
-            distance_to_destination_km=180.0,
-            recommended_action="Refuel immediately",
-            recommended_location="Shell Station, Exit 45 (8km ahead)",
-            confidence_level="high",
-            alternatives=["Continue to depot (risk running out)", "Switch to alternative route"],
-            deterministic_calculation={
-                "fuel_burn_rate_l_per_km": 0.35,
-                "estimated_fuel_needed_l": 63.0,
-                "current_deficit_l": 15.0,
-            }
-        )
-    
-    def test_fallback_when_config_missing(self):
-        """Test that we get deterministic fallback when config is incomplete."""
-        scenario = self._create_sample_scenario()
+    def test_no_config_returns_fallback(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
         result = generate_report(scenario)
-        
-        self.assertEqual(result.report_type, "deterministic_fallback")
-        self.assertIsNone(result.ai_contribution)
-        self.assertIn("TRIP-2026-001", result.summary)
-        self.assertIn("urgent_fuel_stop", result.summary.lower().replace(' ', '_'))
-        self.assertTrue(result.requires_driver_confirmation)
-        self.assertEqual(len(result.alternatives_presented), 2)
-    
-    def test_fallback_response_structure(self):
-        """Test that fallback report has all required fields."""
-        scenario = self._create_sample_scenario()
-        result = generate_report(scenario)
-        
-        # Check all required fields are present and non-empty
-        self.assertTrue(result.summary)
-        self.assertTrue(result.situation_description)
-        self.assertTrue(result.recommended_action)
-        self.assertTrue(result.reasoning)
-        self.assertTrue(result.deterministic_facts)
-        self.assertTrue(result.confidence_notes)
-        
-        # Check deterministic facts include key metrics
-        facts = result.deterministic_facts
-        self.assertIn("trip_id", facts)
-        self.assertIn("current_fuel_liters", facts)
-        self.assertIn("reserve_threshold_liters", facts)
-    
-    def test_fallback_contains_scenario_data(self):
-        """Test that fallback report includes key scenario information."""
-        scenario = self._create_sample_scenario()
-        result = generate_report(scenario)
-        
-        # Check that key data points appear in the report
-        self.assertIn("45.0", result.situation_description)  # current fuel
-        self.assertIn("60.0", result.situation_description)  # threshold
-        self.assertIn("TRUCK-42", result.situation_description)
-        self.assertIn("Shell Station", result.recommended_action)
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
 
+    def test_provider_not_authorized_returns_fallback(self):
+        _set_env()
+        data = dict(SEEDED_INPUT)
+        data["data_handling"] = {
+            **data["data_handling"],
+            "outbound_provider_authorized": False,
+        }
+        scenario = ScenarioPayload.from_dict(data)
+        result = generate_report(scenario)
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
+    def test_fallback_preserves_all_deterministic_facts(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        facts = result.deterministic_facts
+        self.assertEqual(facts["scenario_id"], "PITT-DEMO-017")
+        self.assertEqual(facts["event_type"], "delay_and_reserve_risk")
+        self.assertEqual(facts["delay_minutes"], 28)
+        self.assertEqual(facts["projected_arrival_reserve_percent"], 7)
+        self.assertEqual(facts["minimum_reserve_percent"], 12)
+        self.assertEqual(facts["reserve_gap_percent"], -5)
+        self.assertEqual(facts["recommended_stop"], "Northbound Service Plaza")
+        self.assertEqual(facts["stop_distance_km"], 19)
+        self.assertEqual(facts["stop_detour_minutes"], 15)
+
+    def test_fallback_narrative_contains_key_facts(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        self.assertIn("28-minute", result.narrative)
+        self.assertIn("7%", result.narrative)
+        self.assertIn("12%", result.narrative)
+        self.assertIn("Northbound Service Plaza", result.narrative)
+        self.assertIn("19 km", result.narrative)
+        self.assertIn("15-minute", result.narrative)
+
+    def test_fallback_has_limitations(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        self.assertEqual(len(result.limitations), 2)
+        self.assertIn("no live GPS", result.limitations[0])
+        self.assertIn("does not control a vehicle", result.limitations[1])
+
+    def test_review_is_always_required(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
+        result = generate_report(scenario)
+        self.assertTrue(result.review_required)
+        self.assertFalse(result.review_confirmed)
+
+
+# ---------------------------------------------------------------------------
+# AI provider error tests
+# ---------------------------------------------------------------------------
 
 class TestAIAssistedReportWithMockedHTTP(unittest.TestCase):
-    """Test AI-assisted report generation with mocked HTTP responses."""
-    
     def setUp(self):
-        """Set up environment for AI provider testing."""
-        os.environ["PITT_AI_BASE_URL"] = "https://api.example.com/v1"
-        os.environ["PITT_AI_API_KEY"] = "test-key-12345"
-        os.environ["PITT_AI_MODEL"] = "gpt-4"
-    
-    def tearDown(self):
-        """Clean up environment."""
-        for key in ["PITT_AI_BASE_URL", "PITT_AI_API_KEY", "PITT_AI_MODEL"]:
-            os.environ.pop(key, None)
-    
-    def _create_sample_scenario(self) -> ScenarioPayload:
-        """Create a sample scenario for testing."""
-        return ScenarioPayload(
-            trip_id="TRIP-2026-002",
-            driver_name="Jane Smith",
-            vehicle_id="TRUCK-88",
-            current_location="Interstate 5, Mile 120",
-            destination="Distribution Center Alpha",
-            cargo_type="Frozen Foods",
-            exception_type="urgent_fuel_stop",
-            trigger_reason="Unexpected traffic delay",
-            current_fuel_liters=38.0,
-            reserve_threshold_liters=55.0,
-            distance_to_destination_km=150.0,
-            recommended_action="Refuel at next approved station",
-            recommended_location="Chevron, Exit 130",
-            confidence_level="high",
-            alternatives=["Continue with risk", "Request backup vehicle"],
-            deterministic_calculation={
-                "fuel_burn_rate_l_per_km": 0.32,
-                "estimated_fuel_needed_l": 48.0,
-                "current_deficit_l": 10.0,
-            }
-        )
-    
+        _set_env()
+        self.data = dict(SEEDED_INPUT)
+        self.data["data_handling"] = {
+            **self.data["data_handling"],
+            "outbound_provider_authorized": True,
+        }
+
     def test_http_error_falls_back(self):
-        """Test that HTTP errors trigger deterministic fallback."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to raise HTTPError
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_urlopen.side_effect = HTTPError(
-                url="https://api.example.com/v1/chat/completions",
-                code=500,
-                msg="Internal Server Error",
-                hdrs={},
-                fp=None
-            )
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        error = HTTPError("http://example.com", 500, "Internal Server Error", None, None)
+        with patch("urllib.request.urlopen", side_effect=error):
             result = generate_report(scenario)
-            
-            # Should fall back to deterministic
-            self.assertEqual(result.report_type, "deterministic_fallback")
-            self.assertIsNone(result.ai_contribution)
-    
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
     def test_connection_error_falls_back(self):
-        """Test that connection errors trigger deterministic fallback."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to raise URLError
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_urlopen.side_effect = URLError("Connection refused")
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        with patch("urllib.request.urlopen", side_effect=URLError("Connection refused")):
             result = generate_report(scenario)
-            
-            # Should fall back to deterministic
-            self.assertEqual(result.report_type, "deterministic_fallback")
-            self.assertIsNone(result.ai_contribution)
-    
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
     def test_timeout_falls_back(self):
-        """Test that timeouts trigger deterministic fallback."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to raise TimeoutError
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_urlopen.side_effect = TimeoutError("Request timed out")
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        with patch("urllib.request.urlopen", side_effect=TimeoutError("Request timed out")):
             result = generate_report(scenario)
-            
-            # Should fall back to deterministic
-            self.assertEqual(result.report_type, "deterministic_fallback")
-            self.assertIsNone(result.ai_contribution)
-    
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
     def test_malformed_response_falls_back(self):
-        """Test that malformed responses trigger deterministic fallback."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to return malformed JSON
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_response = unittest.mock.MagicMock()
-            mock_response.read.return_value = b'{"invalid": "structure"}'
-            mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda self, *args: None
-            mock_urlopen.return_value = mock_response
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        response_bytes = json.dumps({"invalid": "shape"}).encode()
+        mock = io.BytesIO(response_bytes)
+        with patch("urllib.request.urlopen", return_value=mock):
             result = generate_report(scenario)
-            
-            # Should fall back to deterministic
-            self.assertEqual(result.report_type, "deterministic_fallback")
-            self.assertIsNone(result.ai_contribution)
-    
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
     def test_empty_response_falls_back(self):
-        """Test that empty AI responses trigger deterministic fallback."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to return valid structure but empty content
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_response = unittest.mock.MagicMock()
-            response_data = {
-                "choices": [
-                    {
-                        "message": {
-                            "content": ""
-                        }
-                    }
-                ]
-            }
-            mock_response.read.return_value = json.dumps(response_data).encode('utf-8')
-            mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda self, *args: None
-            mock_urlopen.return_value = mock_response
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        response_bytes = json.dumps({
+            "choices": [{"message": {"content": ""}}]
+        }).encode()
+        mock = io.BytesIO(response_bytes)
+        with patch("urllib.request.urlopen", return_value=mock):
             result = generate_report(scenario)
-            
-            # Should fall back to deterministic
-            self.assertEqual(result.report_type, "deterministic_fallback")
-            self.assertIsNone(result.ai_contribution)
-    
+        self.assertEqual(result.status, "fallback_ready")
+        self.assertEqual(result.provenance_kind, "deterministic_fallback")
+
     def test_valid_ai_response(self):
-        """Test successful AI-assisted report generation."""
-        scenario = self._create_sample_scenario()
-        
-        # Mock urlopen to return valid AI response
-        with patch('urllib.request.urlopen') as mock_urlopen:
-            mock_response = unittest.mock.MagicMock()
-            ai_content = """Trip TRIP-2026-002 requires an urgent fuel stop.
-
-The vehicle TRUCK-88 is carrying Frozen Foods and currently has 38.0L of fuel, which is below the safe reserve threshold of 55.0L. With 150.0km remaining to reach Distribution Center Alpha, and based on the deterministic fuel calculations, an immediate refuel is necessary to ensure safe delivery.
-
-The recommended action is to refuel at the next approved station at Chevron, Exit 130. This recommendation has high confidence based on current fuel consumption rates and remaining distance.
-
-Driver confirmation is required before proceeding with this exception action."""
-            
-            response_data = {
-                "choices": [
-                    {
-                        "message": {
-                            "content": ai_content
-                        }
-                    }
-                ]
-            }
-            mock_response.read.return_value = json.dumps(response_data).encode('utf-8')
-            mock_response.__enter__ = lambda self: self
-            mock_response.__exit__ = lambda self, *args: None
-            mock_urlopen.return_value = mock_response
-            
+        scenario = ScenarioPayload.from_dict(self.data)
+        ai_text = (
+            "A 28-minute delay has reduced the projected fuel reserve to 7%, "
+            "which is below the 12% policy floor. The recommended stop is "
+            "Northbound Service Plaza, 19 km away."
+        )
+        response_bytes = json.dumps({
+            "choices": [{"message": {"content": ai_text}}]
+        }).encode()
+        mock = io.BytesIO(response_bytes)
+        with patch("urllib.request.urlopen", return_value=mock):
             result = generate_report(scenario)
-            
-            # Should be AI-assisted
-            self.assertEqual(result.report_type, "ai_assisted")
-            self.assertIsNotNone(result.ai_contribution)
-            self.assertIn("AI provider", result.ai_contribution)
-            
-            # Should still contain deterministic facts
-            self.assertIn("trip_id", result.deterministic_facts)
-            self.assertEqual(result.deterministic_facts["trip_id"], "TRIP-2026-002")
-            
-            # Should contain AI content
-            self.assertIn("TRIP-2026-002", result.summary)
-            self.assertTrue(result.requires_driver_confirmation)
+        self.assertEqual(result.status, "draft_ready")
+        self.assertEqual(result.provenance_kind, "ai_assisted")
+        self.assertEqual(result.narrative, ai_text)
+        self.assertTrue(result.review_required)
+        self.assertFalse(result.review_confirmed)
+        # Deterministic facts must still be present verbatim
+        self.assertEqual(
+            result.deterministic_facts,
+            EXPECTED_FALLBACK["deterministic_facts"],
+        )
 
+
+# ---------------------------------------------------------------------------
+# Configuration tests
+# ---------------------------------------------------------------------------
 
 class TestProviderConfig(unittest.TestCase):
-    """Test provider configuration handling."""
-    
-    def setUp(self):
-        """Clear environment before each test."""
-        for key in ["PITT_AI_BASE_URL", "PITT_AI_API_KEY", "PITT_AI_MODEL"]:
-            os.environ.pop(key, None)
-    
-    def test_config_not_configured_when_empty(self):
-        """Test that config is not considered configured when variables are missing."""
+    def test_not_configured_when_empty(self):
+        _clear_env()
         config = ProviderConfig.from_environment()
         self.assertFalse(config.is_configured())
-    
-    def test_config_not_configured_when_partial(self):
-        """Test that config is not configured with only some variables."""
-        os.environ["PITT_AI_BASE_URL"] = "https://api.example.com"
-        os.environ["PITT_AI_MODEL"] = "gpt-4"
-        # Missing API_KEY
-        
+
+    def test_not_configured_when_partial(self):
+        _clear_env()
+        os.environ["PITT_AI_BASE_URL"] = "https://example.com"
         config = ProviderConfig.from_environment()
         self.assertFalse(config.is_configured())
-    
-    def test_config_is_configured_when_complete(self):
-        """Test that config is configured when all variables are present."""
-        os.environ["PITT_AI_BASE_URL"] = "https://api.example.com"
-        os.environ["PITT_AI_API_KEY"] = "test-key"
-        os.environ["PITT_AI_MODEL"] = "gpt-4"
-        
+
+    def test_configured_when_complete(self):
+        _set_env()
         config = ProviderConfig.from_environment()
         self.assertTrue(config.is_configured())
-    
-    def test_secrets_are_masked_in_logging(self):
-        """Test that API keys are never exposed in log-safe representations."""
-        os.environ["PITT_AI_BASE_URL"] = "https://api.example.com"
-        os.environ["PITT_AI_API_KEY"] = "secret-key-do-not-log"
-        os.environ["PITT_AI_MODEL"] = "gpt-4"
-        
+
+    def test_secrets_are_masked(self):
+        _set_env()
         config = ProviderConfig.from_environment()
         masked = config.mask_for_logging()
-        
-        # Should not contain the actual key
-        self.assertNotIn("secret-key", str(masked))
-        self.assertIn("REDACTED", masked["api_key"])
-        
-        # Should contain non-secret values
-        self.assertEqual(masked["base_url"], "https://api.example.com")
+        self.assertEqual(masked["api_key"], "***REDACTED***")
+        self.assertEqual(masked["base_url"], "https://api.example.com/v1")
         self.assertEqual(masked["model"], "gpt-4")
-    
+
     def test_secrets_not_in_string_representation(self):
-        """Test that secrets don't leak through normal string operations."""
-        os.environ["PITT_AI_API_KEY"] = "super-secret-key-12345"
-        
+        _set_env()
         config = ProviderConfig.from_environment()
-        
-        # Even str() shouldn't expose the key directly
-        config_str = str(config)
-        # The key might appear in the dataclass repr, but mask_for_logging() is the safe path
-        # Main thing: enforce use of mask_for_logging() in actual code
-        
-        # Real test: mask_for_logging never exposes it
-        self.assertNotIn("super-secret-key-12345", str(config.mask_for_logging()))
+        self.assertNotIn("secret", str(config))
+        self.assertNotIn("sk-test", repr(config))
 
 
-class TestReportResultValidation(unittest.TestCase):
-    """Test that ReportResult validation works correctly."""
-    
-    def test_deterministic_cannot_claim_ai_contribution(self):
-        """Test that deterministic reports cannot claim AI contribution."""
-        with self.assertRaises(AssertionError):
-            ReportResult(
-                report_type="deterministic_fallback",
-                summary="Test",
-                situation_description="Test",
-                recommended_action="Test",
-                reasoning="Test",
-                deterministic_facts={},
-                ai_contribution="This should fail",  # Invalid!
-                confidence_notes="Test",
-                requires_driver_confirmation=True,
-                alternatives_presented=[],
-            )
-    
-    def test_ai_assisted_must_declare_contribution(self):
-        """Test that AI-assisted reports must declare contribution."""
-        with self.assertRaises(AssertionError):
-            ReportResult(
-                report_type="ai_assisted",
-                summary="Test",
-                situation_description="Test",
-                recommended_action="Test",
-                reasoning="Test",
-                deterministic_facts={},
-                ai_contribution=None,  # Invalid!
-                confidence_notes="Test",
-                requires_driver_confirmation=True,
-                alternatives_presented=[],
-            )
-    
-    def test_valid_deterministic_report(self):
-        """Test that valid deterministic reports pass validation."""
-        report = ReportResult(
-            report_type="deterministic_fallback",
-            summary="Test",
-            situation_description="Test",
-            recommended_action="Test",
-            reasoning="Test",
-            deterministic_facts={"test": "value"},
-            ai_contribution=None,
-            confidence_notes="Test",
-            requires_driver_confirmation=True,
-            alternatives_presented=["Alt 1"],
+# ---------------------------------------------------------------------------
+# ReportResult contract tests
+# ---------------------------------------------------------------------------
+
+class TestReportResultContract(unittest.TestCase):
+    def test_fallback_dict_matches_contract(self):
+        result = ReportResult(
+            status="fallback_ready",
+            provenance_kind="deterministic_fallback",
+            deterministic_facts={"key": "value"},
+            narrative="Test narrative",
+            limitations=["Limitation 1"],
         )
-        self.assertEqual(report.report_type, "deterministic_fallback")
-    
-    def test_valid_ai_assisted_report(self):
-        """Test that valid AI-assisted reports pass validation."""
-        report = ReportResult(
-            report_type="ai_assisted",
-            summary="Test",
-            situation_description="Test",
-            recommended_action="Test",
-            reasoning="Test",
-            deterministic_facts={"test": "value"},
-            ai_contribution="AI contribution description",
-            confidence_notes="Test",
-            requires_driver_confirmation=True,
-            alternatives_presented=["Alt 1"],
+        d = result.to_dict()
+        self.assertEqual(d["schema_version"], "pitt.report-draft.v1")
+        self.assertEqual(d["status"], "fallback_ready")
+        self.assertEqual(d["provenance"], {"kind": "deterministic_fallback"})
+        self.assertEqual(d["deterministic_facts"], {"key": "value"})
+        self.assertEqual(d["narrative"], "Test narrative")
+        self.assertEqual(d["review"], {"required": True, "confirmed": False})
+        self.assertEqual(d["limitations"], ["Limitation 1"])
+
+    def test_ai_dict_includes_model_and_url(self):
+        result = ReportResult(
+            status="draft_ready",
+            provenance_kind="ai_assisted",
+            provenance_model="gpt-4",
+            provenance_base_url="https://api.example.com/v1",
+            deterministic_facts={},
+            narrative="AI text",
         )
-        self.assertEqual(report.report_type, "ai_assisted")
+        d = result.to_dict()
+        self.assertEqual(d["provenance"], {
+            "kind": "ai_assisted",
+            "model": "gpt-4",
+            "base_url": "https://api.example.com/v1",
+        })
 
 
 if __name__ == "__main__":

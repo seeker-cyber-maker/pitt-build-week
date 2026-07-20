@@ -512,3 +512,41 @@ The documentation supports, but does not replace, the required public YouTube de
 ### One open operational question
 
 The current demo frames the exception as a fuel-reserve problem. In a real conversation-driven product, should the AI proactively suggest a time-saving corridor correction when it detects a delay — even before fuel becomes urgent — or should it wait for the driver to ask?
+
+---
+
+## Product Narrative Delivered (2026-07-20)
+
+**Owner:** Patrick / Claude documentation lane  
+**Scope:** Create `SUBMISSION/PRODUCT_NARRATIVE.md` per official Build Week rules and `CONTROL/PROMPTS/PATRICK_SUPPORTING_DOCUMENTATION.md`.
+
+### Changed path
+
+- `SUBMISSION/PRODUCT_NARRATIVE.md` — New file. A clear, credible product narrative for judges:
+  - Starts with the real driver/fleet problem (mental math under pressure, existing tools inadequate)
+  - Explains the 4-step working demo with concrete feature descriptions
+  - Explicit "What Is Simulated / What Is Not Built" table
+  - Commercial direction framed as 3 validation stages (Driver Companion → Fleet Workflow → Enterprise), not a launch promise
+  - Evidence section with test counts (23 Node, 24 Python) and live demo URL
+  - No sales voice, no pricing, no savings/compliance claims
+
+### Factual sources checked
+
+- `CONTROL/PRODUCT_SCOPE.md` — every claimed demo element verified
+- `CONTROL/PRODUCT_DIRECTION.md` — commercial direction kept separate from POC
+- `DEMO_SCENARIO.md` — every demo step tied to seeded scenario
+- `CODEX_BUILD_LOG.md` — commit hashes and test evidence cross-checked
+- `SUBMISSION/DEVWEEK_REFERENCES.md` — official rules and judging criteria verified
+
+### Classification discipline
+
+- Current POC claims backed by runnable code + tests
+- Simulated claims labelled as seeded/local demo data
+- Commercial direction claims framed as hypotheses requiring validation
+- No "Not built" capability implied to exist
+
+### Next baton
+
+- Awaiting feedback from Integration (Codex) on whether this narrative should be merged into `main` or adapted for the Devpost submission page.
+- Awaiting video recording from other agents.
+- No further documentation work until direction is confirmed.

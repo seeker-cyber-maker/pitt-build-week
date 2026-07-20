@@ -1,23 +1,56 @@
 # Harness Handoff: Codex
 
-- **Status:** in progress
+- **Status:** current correction verified locally; ready to publish
 - **Lane:** Integration
-- **Branch/worktree:** `main` during bootstrap only; future integration uses `harness/codex-integration`
+- **Branch/worktree:** `harness/codex-integration`
 - **Started:** 2026-07-18
 
 ## Changed Or Investigated
 
 - Established collaboration control files, product boundary, handoff template, and collation utility.
+- Added a dependency-free local demo shell under `app/` with a three-stage trip, recommendation, and report-review flow.
+- Added deterministic scenario functions in `app/scenario.js` and focused Node tests in `tests/scenario.test.mjs`.
+- Added `package.json` commands for local testing and serving.
+- Defined the shared report boundary in `CONTROL/CONTRACTS/REPORT_DRAFT_V1.md` with bounded seeded input and deterministic fallback output fixtures.
+- Updated Patrick's lane prompt to require contract validation, exact preservation of deterministic facts, and zero provider calls for the local seeded fixture.
+- Merged Patrick's AI/report implementation, routing-contract review, and seeded-scenario validation.
+- Added canonical safe and tight report input/output fixtures alongside the urgent fixture; all three match the deterministic report generator exactly.
+- Corrected the fallback narrative so below-floor, at-floor, and above-floor reserves use accurate language and a safe scenario does not invent a zero-distance stop.
+- Added all three reserve states to `app/scenario.js`; the visible demo remains intentionally pinned to the urgent scenario.
+- Added `app/planner.js`: a separate deterministic planning preview with a local delivery ledger, declared time-window ordering, reachable simulated refuel selection, and a recommended-versus-rejected route comparison. The map is explicitly made up and cannot be mistaken for live routing.
+- Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
+- Made refuel selection price-aware using only seeded CAD-per-litre values plus a simulated detour-cost rule. The UI makes the cheaper-per-litre-but-longer alternative explicit without implying a live fuel-price feed.
+- Added a driver-controlled seeded day playback: five delivery legs, a noon price spike, a 3 PM price drop, explicit keep-or-recalculate choices, and a final delivery-outcome summary. The price events modify only the local planning preview and retain the no-live-data boundary.
+- Added display-only metric/imperial and CAD/USD local-money controls. Distances and fuel volumes convert between physical units; currency values keep their seeded local numeric value and only change label, with an explicit no-exchange-rate disclosure.
+- Added a compact `pitt.trip_handoff.v1` Lua-table machine handoff to the final report. It includes route, refuel, completed leg data, units, and review state; the copy action remains local and the payload explicitly records `external_action = false`.
+- Diagnosed a public toggle failure as stale GitHub Pages module caching: newer HTML had controls while an older `app.js` lacked their listeners. The module now uses a versioned query string; the deployed controls were clicked and verified live.
+- Made Trip Watch authoritative for the report gate: review opens only after an early route closure or normal route completion.
+- An early route closure now preserves recorded delivery results and marks each remaining delivery as `Undelivered` with `Route closed early before delivery attempt`; the report and Lua handoff share that disposition.
+- Added a driver-owned live fuel simulation to Trip Watch. Each completed leg updates the displayed fuel state; the planned refuel visibly moves fuel through approach, refill, and onward delivery; the driver can instead continue without refuelling, cross the reserve floor, reach a simulated empty tank, and then close the route early.
+- Added predictive traffic analysis as a seeded weekday historical-pattern model. It is evaluated at predicted presence times, changes ETA math and compatible-delivery tie-breaking, and is shown per delivery plus in the local machine handoff. It is explicitly not live traffic.
 
 ## Evidence
 
-- **Command or check:** `python3 scripts/collate_handoffs.py`
-- **Result:** Pending first execution after bootstrap files are present.
+- **Command or check:** `npm test`
+- **Result:** 19/19 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; price-event transitions; delivery-outcome summary; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
+- **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
+- **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
+- **Result:** Desktop and mobile walkthroughs completed the five-leg playback, chose both price recalculations, and rendered the final delivery-outcome summary alongside the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow. The confirmation visibly states that no external action was taken.
+- **Command or check:** Local early-close walkthrough.
+- **Result:** Closing after leg 1 produced one recorded `Delivered` outcome and four explicit `Undelivered` outcomes in both the visible report and `pitt.trip_handoff.v1`.
+- **Command or check:** Browser walkthrough of the live-fuel branches.
+- **Result:** Planned refuel raised the tracked fuel from `18.3%` at the pump to `80.0%`, then `67.9%` after leg 2. Declining it reached `6.2%` after leg 2, then `0.0%` with a `13.7%` simulated deficit after leg 3; further driving was disabled while early closure remained available. The Lua handoff recorded `driver_decision = "continue"` and `status = "empty"`.
+- **Command or check:** Browser smoke check of the predictive-traffic planning state.
+- **Result:** The ledger showed the local historical-pattern boundary, `36 simulated min` across the planned corridor, final predicted presence `11:26`, and a per-stop `09:05 · historical peak traffic +10 min` reference. No current-traffic claim is made.
 
 ## Limits Or Risks
 
-- No web application has been selected or implemented yet. This is intentional: the first parallel lanes can agree on an executable contract before UI code exists.
+- The present scenario is intentionally local. The planning preview uses invented coordinates, fuel stops, and distances; it is not a live planning engine. The visible exception flow is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
+- The static browser shell uses its local deterministic fallback. The provider-neutral Python report module is independently validated and remains ready for a later single integration seam.
+- No provider endpoint is called. The report is explicitly labeled as a deterministic local fallback.
 
 ## Next Small Action
 
-- Create the deterministic scenario package and test it before any AI endpoint or deployment work.
+- **Current correction:** published Trip Watch authority and early-close delivery disposition.
+- **Acceptance:** deploy the current commit to GitHub Pages and smoke-check that the cache-keyed module is served. Keep the seeded/no-live-data boundary.

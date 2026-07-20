@@ -1,7 +1,7 @@
 # Pull Request: AI/Report Boundary Implementation
 
-**Branch:** `harness/patrick-ai-report` → `main`  
-**Lane:** AI/report boundary  
+**Branch:** `harness/patrick-ai-report` → `main`
+**Lane:** AI/report boundary
 **Owner:** Patrick Simard (@psimardgit)
 
 ## Summary
@@ -27,13 +27,13 @@ Implements a provider-neutral AI-assisted report generation module with determin
 
 All criteria from `CONTROL/PROMPTS/PATRICK_AI_REPORT.md` met:
 
-✅ Provider-neutral contract under `packages/ai/`  
-✅ Uses `PITT_AI_BASE_URL`, `PITT_AI_API_KEY`, `PITT_AI_MODEL` only when configured  
-✅ Never logs secrets (masked configuration)  
-✅ Deterministic fallback for: unconfigured, HTTP errors, malformed responses  
-✅ Distinguishes deterministic facts from AI-assisted narrative  
-✅ No autonomous action beyond supplied scenario decision  
-✅ No framework, database, or live routing data added  
+✅ Provider-neutral contract under `packages/ai/`
+✅ Uses `PITT_AI_BASE_URL`, `PITT_AI_API_KEY`, `PITT_AI_MODEL` only when configured
+✅ Never logs secrets (masked configuration)
+✅ Deterministic fallback for: unconfigured, HTTP errors, malformed responses
+✅ Distinguishes deterministic facts from AI-assisted narrative
+✅ No autonomous action beyond supplied scenario decision
+✅ No framework, database, or live routing data added
 
 ## Test Results
 

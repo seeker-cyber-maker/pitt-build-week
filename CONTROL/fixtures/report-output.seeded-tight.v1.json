@@ -1,0 +1,27 @@
+{
+  "schema_version": "pitt.report-draft.v1",
+  "status": "fallback_ready",
+  "provenance": {
+    "kind": "deterministic_fallback"
+  },
+  "deterministic_facts": {
+    "scenario_id": "PITT-DEMO-019",
+    "event_type": "delay_and_reserve_risk",
+    "delay_minutes": 22,
+    "projected_arrival_reserve_percent": 12,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": 0,
+    "recommended_stop": "Eastbridge Travel Centre",
+    "stop_distance_km": 14,
+    "stop_detour_minutes": 12
+  },
+  "narrative": "A seeded 22-minute delay changes projected fuel reserve to 12%, at the 12% policy floor. The supplied review option is Eastbridge Travel Centre, 14 km away with a planned 12-minute detour. Driver review is required before any external action.",
+  "review": {
+    "required": true,
+    "confirmed": false
+  },
+  "limitations": [
+    "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
+    "This draft does not control a vehicle or issue a driving instruction."
+  ]
+}

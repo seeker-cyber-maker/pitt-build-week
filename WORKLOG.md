@@ -1,8 +1,8 @@
 # Worklog — PITT Build Week (AI/Report Boundary)
 
-**Lane:** AI/report boundary  
-**Owner:** Patrick Simard (@psimardgit)  
-**Branch:** `harness/patrick-ai-report`  
+**Lane:** AI/report boundary
+**Owner:** Patrick Simard (@psimardgit)
+**Branch:** `harness/patrick-ai-report`
 **PR:** #2 — https://github.com/seeker-cyber-maker/pitt-build-week/pull/2
 
 ---

@@ -1,9 +1,9 @@
 # 🎉 PITT Build Week - AI/Report Boundary Implementation Complete
 
-**Voie:** AI/report boundary  
-**Propriétaire:** Patrick Simard (@psimardgit)  
-**Branche:** `harness/patrick-ai-report`  
-**Statut:** ✅ Prêt pour revue de PR  
+**Voie:** AI/report boundary
+**Propriétaire:** Patrick Simard (@psimardgit)
+**Branche:** `harness/patrick-ai-report`
+**Statut:** ✅ Prêt pour revue de PR
 **Date:** 2026-07-18
 
 ---
@@ -14,12 +14,12 @@ J'ai implémenté avec succès un module de génération de rapports assistée p
 
 ### Caractéristiques Clés
 
-✅ **Fallback Déterministe** - Toujours disponible, même sans configuration AI  
-✅ **Provider-Neutral** - Supporte tout endpoint compatible OpenAI  
-✅ **Sécurisé** - Jamais de secrets dans les logs, configuration via env vars  
-✅ **Testé** - 18 tests unitaires couvrant tous les cas limites  
-✅ **Documenté** - README complet + exemple d'utilisation fonctionnel  
-✅ **Traçabilité** - Distinction claire deterministic vs AI-assisted  
+✅ **Fallback Déterministe** - Toujours disponible, même sans configuration AI
+✅ **Provider-Neutral** - Supporte tout endpoint compatible OpenAI
+✅ **Sécurisé** - Jamais de secrets dans les logs, configuration via env vars
+✅ **Testé** - 18 tests unitaires couvrant tous les cas limites
+✅ **Documenté** - README complet + exemple d'utilisation fonctionnel
+✅ **Traçabilité** - Distinction claire deterministic vs AI-assisted
 
 ---
 
@@ -367,8 +367,8 @@ Le module AI/report boundary est **complet**, **testé**, **sécurisé**, et **p
 
 ---
 
-**Créé par:** Claude (Hermes Agent)  
-**Pour:** Patrick Simard (@psimardgit)  
-**Projet:** PITT Build Week  
-**Date:** 2026-07-18  
+**Créé par:** Claude (Hermes Agent)
+**Pour:** Patrick Simard (@psimardgit)
+**Projet:** PITT Build Week
+**Date:** 2026-07-18
 **Status:** ✅ Complete

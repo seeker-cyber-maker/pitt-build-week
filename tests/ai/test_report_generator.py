@@ -13,6 +13,7 @@ import io
 import json
 import os
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
@@ -25,75 +26,16 @@ from packages.ai.report_generator import generate_report
 # Fixture helpers
 # ---------------------------------------------------------------------------
 
-SEEDED_INPUT = {
-    "schema_version": "pitt.report-input.v1",
-    "scenario": {"id": "PITT-DEMO-017", "mode": "seeded_demo"},
-    "trip": {
-        "driver_display_alias": "Jordan Lee",
-        "cargo_category": "refrigerated groceries",
-        "destination_label": "North Market Distribution Centre",
-        "route_label": "A-40 East / local delivery corridor",
-    },
-    "event": {
-        "type": "delay_and_reserve_risk",
-        "delay_minutes": 28,
-        "source": "seeded local scenario",
-    },
-    "deterministic_assessment": {
-        "calculation_version": "pitt.reserve-risk.v1",
-        "current_fuel_percent": 24,
-        "projected_arrival_reserve_percent": 7,
-        "minimum_reserve_percent": 12,
-        "reserve_gap_percent": -5,
-        "status": "urgent",
-    },
-    "proposed_decision": {
-        "type": "fuel_stop_review",
-        "stop_label": "Northbound Service Plaza",
-        "distance_km": 19,
-        "detour_minutes": 15,
-        "selection_basis": "pre-approved demo stop",
-        "alternatives": [
-            "Continue without stopping: projected reserve remains below policy.",
-            "Contact dispatch for a different approved stop: review needed before changing the plan.",
-        ],
-        "driver_review_required": True,
-    },
-    "data_handling": {
-        "provenance": "seeded_local",
-        "retention": "session_only",
-        "outbound_provider_authorized": False,
-    },
-}
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FIXTURES_DIR = REPO_ROOT / "CONTROL" / "fixtures"
 
-EXPECTED_FALLBACK = {
-    "schema_version": "pitt.report-draft.v1",
-    "status": "fallback_ready",
-    "provenance": {"kind": "deterministic_fallback"},
-    "deterministic_facts": {
-        "scenario_id": "PITT-DEMO-017",
-        "event_type": "delay_and_reserve_risk",
-        "delay_minutes": 28,
-        "projected_arrival_reserve_percent": 7,
-        "minimum_reserve_percent": 12,
-        "reserve_gap_percent": -5,
-        "recommended_stop": "Northbound Service Plaza",
-        "stop_distance_km": 19,
-        "stop_detour_minutes": 15,
-    },
-    "narrative": (
-        "A seeded local scenario 28-minute delay changes projected fuel "
-        "reserve to 7%, below the 12% policy floor. "
-        "The supplied review option is Northbound Service Plaza, "
-        "19 km away with a planned 15-minute detour. "
-        "Driver review is required before any external action."
-    ),
-    "review": {"required": True, "confirmed": False},
-    "limitations": [
-        "Seeded local demo; no live GPS, traffic, map, fuel-price, telematics, or dispatch feed.",
-        "This draft does not control a vehicle or issue a driving instruction.",
-    ],
-}
+
+def _load_fixture(name: str) -> dict:
+    return json.loads((FIXTURES_DIR / name).read_text(encoding="utf-8"))
+
+
+SEEDED_INPUT = _load_fixture("report-input.seeded-demo.v1.json")
+EXPECTED_FALLBACK = _load_fixture("report-output.fallback.v1.json")
 
 
 def _clear_env():
@@ -131,6 +73,22 @@ class TestContractFixture(unittest.TestCase):
         scenario = ScenarioPayload.from_dict(SEEDED_INPUT)
         result = generate_report(scenario)
         self.assertEqual(result.to_dict(), EXPECTED_FALLBACK)
+
+    def test_all_seeded_fixtures_produce_their_canonical_outputs(self):
+        _clear_env()
+        for state in ("demo", "safe", "tight"):
+            input_name = (
+                "report-input.seeded-demo.v1.json"
+                if state == "demo"
+                else f"report-input.seeded-{state}.v1.json"
+            )
+            output_name = (
+                "report-output.fallback.v1.json"
+                if state == "demo"
+                else f"report-output.seeded-{state}.v1.json"
+            )
+            scenario = ScenarioPayload.from_dict(_load_fixture(input_name))
+            self.assertEqual(generate_report(scenario).to_dict(), _load_fixture(output_name))
 
 
 # ---------------------------------------------------------------------------
@@ -197,6 +155,24 @@ class TestDeterministicFallback(unittest.TestCase):
         result = generate_report(scenario)
         self.assertTrue(result.review_required)
         self.assertFalse(result.review_confirmed)
+
+    def test_safe_reserve_uses_above_floor_wording_without_a_fake_stop(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(
+            _load_fixture("report-input.seeded-safe.v1.json")
+        )
+        result = generate_report(scenario)
+        self.assertIn("18%, 6 percentage points above the 12% policy floor", result.narrative)
+        self.assertIn("no fuel-stop review is needed", result.narrative)
+        self.assertNotIn("0 km away", result.narrative)
+
+    def test_tight_reserve_uses_at_floor_wording(self):
+        _clear_env()
+        scenario = ScenarioPayload.from_dict(
+            _load_fixture("report-input.seeded-tight.v1.json")
+        )
+        result = generate_report(scenario)
+        self.assertIn("12%, at the 12% policy floor", result.narrative)
 
 
 # ---------------------------------------------------------------------------

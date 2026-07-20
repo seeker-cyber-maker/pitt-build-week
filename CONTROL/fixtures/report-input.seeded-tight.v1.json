@@ -1,0 +1,43 @@
+{
+  "schema_version": "pitt.report-input.v1",
+  "scenario": {
+    "id": "PITT-DEMO-019",
+    "mode": "seeded_demo"
+  },
+  "trip": {
+    "driver_display_alias": "Aisha Dubois",
+    "cargo_category": "refrigerated pharmaceuticals",
+    "destination_label": "East End Medical Depot",
+    "route_label": "A-10 East / planned corridor"
+  },
+  "event": {
+    "type": "delay_and_reserve_risk",
+    "delay_minutes": 22,
+    "source": "seeded local scenario"
+  },
+  "deterministic_assessment": {
+    "calculation_version": "pitt.reserve-risk.v1",
+    "current_fuel_percent": 32,
+    "projected_arrival_reserve_percent": 12,
+    "minimum_reserve_percent": 12,
+    "reserve_gap_percent": 0,
+    "status": "tight"
+  },
+  "proposed_decision": {
+    "type": "fuel_stop_review",
+    "stop_label": "Eastbridge Travel Centre",
+    "distance_km": 14,
+    "detour_minutes": 12,
+    "selection_basis": "Projected reserve reaches the seeded policy floor; the scenario supplies a pre-approved corridor stop for review.",
+    "alternatives": [
+      "Continue to destination: projected reserve reaches the policy floor.",
+      "Review a different approved stop: driver confirmation is required before changing the plan."
+    ],
+    "driver_review_required": true
+  },
+  "data_handling": {
+    "provenance": "seeded_local",
+    "retention": "session_only",
+    "outbound_provider_authorized": false
+  }
+}

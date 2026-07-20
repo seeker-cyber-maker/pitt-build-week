@@ -1,6 +1,6 @@
 # PITT Build Week
 
-PITT is a deliberately narrow demo of a trip-exception and report assistant for delivery drivers. It shows one refrigerated-delivery scenario: a route delay makes a fuel stop urgent, the driver reviews a deterministic recommendation, and an AI-assisted report draft is produced for approval.
+PITT is a deliberately narrow demo of a trip-exception and report assistant for delivery drivers. It begins with a simulated delivery ledger that orders time windows, applies a seeded weekday traffic pattern at predicted presence times, and inserts a reachable simulated fuel stop. It then plays a driver-controlled seeded day with two fuel-price events before showing one refrigerated-delivery exception: a route delay makes a fuel stop urgent, the driver reviews a deterministic recommendation, and a report draft is produced for approval.
 
 This repository is organized for several harnesses working in parallel without merging unverified ideas into the demo.
 
@@ -13,8 +13,30 @@ This repository is organized for several harnesses working in parallel without m
 
 The integration lane is deliberately small. A contribution is not ready merely because it builds: it must have a stated acceptance check and captured result.
 
+## Run The Local Demo
+
+This branch contains a dependency-free local demo shell under `app/`. It uses only seeded data and can be opened without credentials or a provider key.
+
+```bash
+npm test
+npm run serve
+```
+
+Open `http://127.0.0.1:4173` and complete the visible path:
+
+1. Inspect the simulated delivery ledger and compare the recommended corridor against the rejected loop.
+2. Advance the seeded day; at noon and 3 PM, compare a fuel-price recalculation with keeping the current route.
+3. Review the seeded trip and acknowledge the deterministic reserve-risk recommendation.
+4. Review and confirm the locally generated report draft, including its leg-level delivery outcomes.
+
+The existing scenario, UI, and AI/report lanes can replace the corresponding local modules later. The demo must remain usable when no model endpoint is configured.
+
 ## Demo Boundary
 
-PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, or fuel-pricing data. It uses a clearly labeled local demo scenario and deterministic calculations. Model output is a reviewable draft, never an autonomous instruction.
+PITT does not control a vehicle, dispatch real routes, access regulated vehicle systems, or claim live traffic, mapping, real station information, or fuel-pricing data. Its route diagram uses clearly labelled invented coordinates, local deterministic calculations, seeded fuel prices balanced against simulated detour cost, and a seeded weekday historical-traffic reference at predicted presence times. Model output is a reviewable draft, never an autonomous instruction.
+
+The display can switch between metric and imperial physical units. It can also label the seeded local-money scenario as CAD or USD; this is not a currency-conversion feature and does not use an exchange-rate feed.
+
+The report includes a compact Lua-table machine handoff for a later approved workflow. It remains local, shows `driver_review_required` until the driver confirms review, and never sends or triggers downstream automation on its own.
 
 See `CONTROL/PRODUCT_SCOPE.md` for the exact demo contract and `CONTROL/WORKBOARD.md` for the current queue.

@@ -9,11 +9,17 @@ Before the active trip exception, the demo shows a local delivery ledger with fi
 
 The recommended plan inserts Cedar Service Plaza before North Market Distribution Centre because the next direct leg would cross the seeded 14% reserve floor. Its selection balances seeded per-litre price against simulated detour cost; South Loop Fuel is cheaper per litre, but loses after its longer detour is counted. The comparison is deterministic and visibly labelled a local map simulation. It is not a claim about real roads, stations, traffic, distance, routing, fuel price, or fuel availability.
 
+Each planned delivery also receives a seeded weekday historical-traffic condition at its predicted presence time. This lets the POC demonstrate that planning should consider when the vehicle expects to be at a place rather than merely displaying traffic at plan-creation time. It is not current, predictive, or externally sourced traffic.
+
 ## Seeded Day Playback
 
 The demo can advance through five bounded, simulated legs. At **12:00**, a severe seeded price increase changes the calculated refuel choice from Cedar Service Plaza to South Loop Fuel. At **15:00**, a seeded price drop changes it back to Cedar. Each event requires an explicit driver choice: **Recalculate route** or **Keep current route**. The UI shows the selected route and simulated cost impact; it never contacts a pricing, GPS, or dispatch service.
 
-The final report sidebar carries the completed leg record: three delivered legs, one undelivered leg, and one nobody-on-site outcome. The bounded proof records are a recipient barcode scan, delivery-location picture, adult signature, or a stated failure reason. These are local demo artifacts, not claims of hardware integration.
+Trip Watch owns the evolving fuel state: every completed leg consumes seeded fuel, a selected refuel restores it, and the driver may continue without refuelling after the warning. That choice can make the simulated vehicle run out of fuel, at which point the driver can close the route early and the remaining stops are marked undelivered.
+
+The final report sidebar carries the completed leg record: delivered, undelivered, or nobody-on-site outcomes. The bounded proof records are a recipient barcode scan, delivery-location picture, adult signature, or a stated failure reason. These are local demo artifacts, not claims of hardware integration.
+
+The display can switch between metric and imperial physical units. It can label the seeded local-money scenario as CAD or USD, but applies no exchange rate and makes no claim about a local fuel-price feed.
 
 ## Trip Context
 

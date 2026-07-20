@@ -10,7 +10,8 @@ Build a clear, runnable Build Week demonstration of PITT: a driver-facing trip e
 2. `CONTROL/PRODUCT_SCOPE.md`
 3. `CONTROL/WORKBOARD.md`
 4. `CONTROL/OPERATIONAL_DESIGN_INPUTS.md`
-5. Your lane prompt under `CONTROL/PROMPTS/`
+5. `CONTROL/PRODUCT_DIRECTION.md`
+6. Your lane prompt under `CONTROL/PROMPTS/`
 6. `HANDOFFS/<your-lane>.md`
 
 For the AI/report lane also read:
@@ -67,6 +68,12 @@ This lane is deliberately collaborative, not autonomous. Work one clearly bounde
 Do not independently expand into UI, maps, live providers, new data collection, architecture changes, or a second feature after reaching a passing milestone. Ask Patrick for the next baton when requirements are unclear or a decision affects driver workflow, data handling, or product scope.
 
 Prefer a short, honest handoff over a broad attempt to anticipate every future feature.
+
+## Supporting Documentation
+
+For a product, submission, or operational-documentation baton, read and follow `CONTROL/PROMPTS/PATRICK_SUPPORTING_DOCUMENTATION.md` before drafting. Treat `CONTROL/PRODUCT_DIRECTION.md` as the commercial-direction source and `SUBMISSION/DEVWEEK_REFERENCES.md` as the current submission-reference index.
+
+Documentation must distinguish current POC behavior, simulated demo behavior, future commercial direction, and intentionally unbuilt capability. The official Build Week rules require a working project, a public under-three-minute YouTube demo with audio, a repository, and a README explaining Codex/GPT-5.6 use; a product pitch is supporting evidence, not a substitute for the demo.
 
 ## Definition Of Done For This Sprint
 

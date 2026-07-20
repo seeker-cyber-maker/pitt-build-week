@@ -430,65 +430,85 @@ Together they cover the full decision spectrum. The UI lane can build three dist
 
 ---
 
-## Strategic Positioning Proposal (2026-07-20)
+## Product and Build Week documentation baton
 
-> **Owner:** Patrick (driver perspective / AI-report lane)
-> **Status:** Proposal — awaiting feedback from Integration (Codex) and Submission (Research) before applying to any shared files.
+**Date:** 2026-07-20
+**Owner:** Patrick / Claude documentation lane
+**Goal:** keep the driver-informed commercial direction and Build Week support material aligned with the current runnable POC.
 
-### The Problem with Current Narrative
+### Read before drafting
 
-The README, demo scenario, and video script currently position PITT as a **fuel-reserve management and exception-reporting tool**. This is a crowded space: Trucker Path, Sygic Truck, Waze for Trucks, and dozens of fleet dashboards already do fuel stops and route exceptions. A Build Week submission framed this way will not stand out.
+1. `CONTROL/PRODUCT_DIRECTION.md`
+2. `CONTROL/PROMPTS/PATRICK_SUPPORTING_DOCUMENTATION.md`
+3. `DEMO_SCENARIO.md`
+4. `SUBMISSION/DEVWEEK_REFERENCES.md`
+5. `README.md`
 
-### Proposed Differentiation
+### Current POC features to describe accurately
 
-PITT's real differentiator is **conversational, real-time AI that saves driving time** — not distance, but **wall-clock time** — by dynamically correcting the course as conditions change. Fuel-stop management is a **bonus feature**, not the headline.
+- Seeded delivery ordering, simulated recommended-versus-rejected route comparison, and refuel choice that balances seeded price and simulated detour cost.
+- Seeded historical weekday traffic at predicted presence times, not live traffic.
+- A five-leg Trip Watch with driver-owned fuel choices, noon/3 PM price events, early close, and delivery outcomes.
+- Review-gated local report and Lua-table handoff; no external workflow starts.
+- A deterministic report fallback plus an optional provider-neutral AI narrative path that preserves authoritative facts.
 
-**What makes this unique:**
-- Existing GPS apps predict traffic from historical patterns ("usual Tuesday jam at 3 PM"). PITT would use live traffic + AI reasoning to **react to the unexpected** — an accident, a sudden closure, a delay at the receiver.
-- The correction is **conversation-driven**: the driver asks, the AI explains the trade-off (time vs. distance vs. fuel), and the driver decides. No black-box routing.
-- The goal is **time saved**, not shortest distance. A longer route that avoids a 45-minute standstill is the better route.
-- The fuel stop is **contextual**: inserted only when a delay makes it necessary, not on every trip.
+### Documentation boundary
 
-### Driver-Visible Value Proposition (proposed)
+The product direction may discuss a driver companion, fleet workflow adapters, and customer-operated deployment. It must not say those integrations exist today, promise savings/compliance, or present the simulated POC as live routing. Use the classifications and writing rules in the documentation baton prompt.
 
-> "PITT doesn't just reroute you around traffic — it explains why, shows you the time trade-off, and lets you decide. Fuel stops, report drafts, and delivery adjustments happen automatically in the background when they're needed. You drive less stressed and arrive on time more often."
+### Build Week reminder
 
-### What This Means for Submission Documents
+The documentation supports, but does not replace, the required public YouTube demo under three minutes. Use `SUBMISSION/DEVWEEK_REFERENCES.md` to verify current official requirements and links before any submission edit.
 
-| Document | Current framing | Proposed framing |
-|---|---|---|
-| `README.md` | "trip-exception and report assistant for delivery drivers" | "AI co-pilot for delivery drivers: real-time course correction that saves time, with contextual fuel and report handling" |
-| `DEMO_SCENARIO.md` | Fuel-reserve exception as the story | Time-saving course correction as the story; fuel as the consequence of the delay |
-| `VIDEO_SCRIPT.md` | 45 seconds on fuel reserve, 15 seconds on report | 45 seconds on the delay → AI correction → time saved, 15 seconds on fuel + report as supporting features |
+### Next baton
 
-### Why the Fuel Angle Is Still Present (But Not Dominant)
+- Draft a concise product narrative or Devpost text from these sources.
+- Keep every claimed POC feature tied to `DEMO_SCENARIO.md`, `README.md`, or a named test.
+- Record changed paths, evidence, and one open driver/workflow question here before returning the baton.
 
-- Fuel management is the **seeded demo mechanism** we can show in a local Build Week environment
-- In a production vision, the same AI layer handles fuel, HOS, delivery windows, weather, and receiver delays
-- The demo's deterministic fallback report shows **trust and transparency** — the driver always sees why a correction was suggested
+---
 
-### Request to Other Lanes
+## Documentation Delivered (2026-07-20)
 
-**Integration (Codex):** Does this positioning conflict with the current demo scope or the visible app flow? The UI would need minimal changes — mostly copy and header labels — but the narrative shift is significant.
+**Owner:** Patrick / Claude documentation lane  
+**Scope:** Revision of `README.md` + creation of `SUBMISSION/DEVPOST_SUBMISSION.md` per the documentation baton prompt.
 
-**Submission (Research):** Does the Build Week judging criteria reward "AI-assisted time optimization" more than "fuel management"? If so, this reframing strengthens the submission.
+### Changed paths
 
-**UI (AGY):** If the three-screen demo gets a selector for safe/tight/urgent, could the urgent screen emphasize the **delay causing the problem** and the **time saved by the correction** rather than only the fuel gap?
+- `README.md` — Rewritten as submission-ready product pitch. Added:
+  - Clear tagline: "AI Co-Pilot for Delivery Drivers"
+  - Vision section with competitive differentiation (time-saving, not fuel-only)
+  - Classification table: Current POC / Simulated / Commercial / Not built
+  - License section (MIT)
+  - Cleaner structure for Devpost judges
+- `SUBMISSION/DEVPOST_SUBMISSION.md` — New file, copy-paste ready for Devpost. Contains:
+  - Project name, tagline, elevator pitch
+  - Problem statement from driver perspective
+  - What PITT does (4 POC steps, all classified)
+  - How we built it (Codex + GPT-5.6 attribution)
+  - Classification table (same as README)
+  - Challenges, accomplishments, what we learned
+  - What's next (validation plan, not launch promises)
+  - Built With, Try It Out, Team sections
+  - Open operational questions
 
-### What I Am NOT Proposing
+### Factual sources checked
 
-- I am NOT proposing to add live traffic, maps, or real AI endpoints to the Build Week demo. The demo stays local and seeded.
-- I am NOT proposing to change the report contract, AI adapter, or deterministic fallback. Those are technically complete.
-- I am proposing a **narrative and copy change only** for the submission artifacts.
+- `CONTROL/PRODUCT_SCOPE.md` — every claimed demo element verified against scope
+- `CONTROL/PRODUCT_DIRECTION.md` — commercial direction separated from POC
+- `DEMO_SCENARIO.md` — every POC feature tied to seeded scenario
+- `CODEX_BUILD_LOG.md` — commit hashes and test evidence cross-checked
+- `SUBMISSION/DEVWEEK_REFERENCES.md` — deadline, track, video requirements verified
+- `tests/ai/test_report_generator.py` — 24 tests pass
+- `tests/*.test.mjs` — 23 Node tests pass
 
-### Next Small Action
+### Simulated vs. future-product boundary
 
-1. **Integration (Codex) and Submission (Research) review this proposal.**
-2. If accepted, I will draft revised copy for `README.md`, `DEMO_SCENARIO.md`, and `VIDEO_SCRIPT.md` in a new branch.
-3. If rejected, the current submission documents remain unchanged and the demo ships as-is.
+- Every "Current POC" claim is backed by runnable code + tests
+- Every "Simulated" claim is labeled as seeded/local demo data
+- Every "Commercial direction" claim is framed as validation hypothesis
+- No "Not built" capability is implied to exist
 
-### Evidence
+### One open operational question
 
-- This proposal is grounded in 25+ years of cross-border driving experience. Every experienced driver knows that "saving kilometers" is worthless if you lose two hours in a traffic jam. Time is the currency that matters.
-- Competitive analysis: Trucker Path = fuel + parking. Sygic = truck-specific routing. Waze = crowd traffic. None of them explain **why** a correction is suggested in natural language, or let the driver weigh time vs. distance vs. fuel in a conversation.
-- PITT's existing AI/report layer (`packages/ai/`) already supports the "explain the trade-off" pattern through its narrative field. The architecture aligns with this vision even if the demo is currently narrow.
+The current demo frames the exception as a fuel-reserve problem. In a real conversation-driven product, should the AI proactively suggest a time-saving corridor correction when it detects a delay — even before fuel becomes urgent — or should it wait for the driver to ask?

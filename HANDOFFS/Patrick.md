@@ -465,3 +465,26 @@ The documentation supports, but does not replace, the required public YouTube de
 - Draft a concise product narrative or Devpost text from these sources.
 - Keep every claimed POC feature tied to `DEMO_SCENARIO.md`, `README.md`, or a named test.
 - Record changed paths, evidence, and one open driver/workflow question here before returning the baton.
+
+---
+
+## Selective submission-document integration
+
+**Date:** 2026-07-20
+**Integration decision:** Accepted the submission narrative direction from `harness/patrick-ai-report`, with public-submission corrections applied on `main`.
+
+### Integrated
+
+- `SUBMISSION/PRODUCT_NARRATIVE.md`
+- `SUBMISSION/DEVPOST_SUBMISSION.md`
+
+### Corrections applied by integration
+
+- Replaced `AI Co-Pilot` wording with `Driver-First Trip Assistant`.
+- Removed an unsupported MIT-license assertion; public-repository licensing remains a submission checklist item.
+- Described the optional Python provider adapter as a separate tested module, not as a live browser-demo call.
+- Kept commercial direction as pilot-validation language and retained the explicit local/seeded boundary.
+
+### Retained on Patrick's branch, not published to `main`
+
+- Raw questionnaire and operational synthesis: useful design input, but not necessary public submission material until claims, consent, and contract implications are reviewed.

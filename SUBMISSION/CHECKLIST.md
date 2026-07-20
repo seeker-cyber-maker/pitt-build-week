@@ -49,6 +49,9 @@
 - [x] **Commercial direction is documented separately from the POC.**
   `CONTROL/PRODUCT_DIRECTION.md` records driver-companion, fleet-workflow, and customer-operated deployment hypotheses without presenting them as implemented capability.
 
+- [x] **Submission narrative and Devpost draft are ready for final form entry.**
+  `SUBMISSION/PRODUCT_NARRATIVE.md` and `SUBMISSION/DEVPOST_SUBMISSION.md` distinguish the working seeded POC from future commercial validation work.
+
 ---
 
 ## Pending

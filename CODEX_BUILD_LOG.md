@@ -83,3 +83,15 @@
 - **Files:** `app/planner.js`, `app/index.html`, `app/app.js`, `app/styles.css`, `tests/planner.test.mjs`, `tests/app-ui-contract.test.mjs`, `DEMO_SCENARIO.md`, `SUBMISSION/VIDEO_SCRIPT.md`
 - **Evidence:** `npm test` — 11 Node tests pass. Browser checks at desktop and 390px mobile widths show the delivery ledger, recommended route, deliberately rejected loop, and existing trip-exception flow.
 - **Notes:** Every coordinate, station, route distance, and fuel calculation is seeded local demo data. The visual is explicitly a simulated map, not live navigation.
+
+### Driver-owned Trip Watch and fuel consequences
+- **Commits:** `a115e86`, `9b7a8c1`, `31f1aa6`, `5cc703e`, `223a1c8`, `50b88db`, `a6d8ccd`
+- **Files:** `app/app.js`, `app/day-playback.js`, `app/fuel-simulation.js`, `app/index.html`, `tests/day-playback.test.mjs`, `tests/fuel-simulation.test.mjs`, `tests/app-ui-contract.test.mjs`
+- **Evidence:** `npm test` — current suite covers price-event recalculation, unit/local-money display behavior, Trip Watch report gating, early-close dispositions, refuel recovery, and the allowed run-out-of-fuel path.
+- **Notes:** All events, fuel state, stops, and delivery outcomes are seeded local POC data. The driver chooses whether to recalculate, refuel, continue, or close early; no action is sent externally.
+
+### Predictive-traffic POC and submission alignment
+- **Commits:** `2278dd5`, `a174645`
+- **Files:** `app/planner.js`, `app/app.js`, `tests/planner.test.mjs`, `README.md`, `DEMO_SCENARIO.md`, `SUBMISSION/`
+- **Evidence:** `npm test` — current suite confirms the planning view uses seeded weekday historical patterns at planned presence times. Official submission requirements recorded in `SUBMISSION/DEVWEEK_REFERENCES.md` on 2026-07-20.
+- **Notes:** The traffic representation is explicitly historical seeded demo data, not a live or predictive provider feed. Product-direction documentation keeps future commercial integration ideas separate from the working POC.

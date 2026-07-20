@@ -427,3 +427,41 @@ Together they cover the full decision spectrum. The UI lane can build three dist
 - Review conducted against existing `PITT-DEMO-017` fixture and `app/scenario.js` (commit `19dda1e`).
 - Proposed values grounded in 25+ years driving experience: fuel burn rates, typical policy floors, realistic delays, and corridor stop distances.
 - Only `HANDOFFS/Patrick.md` was modified.
+
+---
+
+## Product and Build Week documentation baton
+
+**Date:** 2026-07-20
+**Owner:** Patrick / Claude documentation lane
+**Goal:** keep the driver-informed commercial direction and Build Week support material aligned with the current runnable POC.
+
+### Read before drafting
+
+1. `CONTROL/PRODUCT_DIRECTION.md`
+2. `CONTROL/PROMPTS/PATRICK_SUPPORTING_DOCUMENTATION.md`
+3. `DEMO_SCENARIO.md`
+4. `SUBMISSION/DEVWEEK_REFERENCES.md`
+5. `README.md`
+
+### Current POC features to describe accurately
+
+- Seeded delivery ordering, simulated recommended-versus-rejected route comparison, and refuel choice that balances seeded price and simulated detour cost.
+- Seeded historical weekday traffic at predicted presence times, not live traffic.
+- A five-leg Trip Watch with driver-owned fuel choices, noon/3 PM price events, early close, and delivery outcomes.
+- Review-gated local report and Lua-table handoff; no external workflow starts.
+- A deterministic report fallback plus an optional provider-neutral AI narrative path that preserves authoritative facts.
+
+### Documentation boundary
+
+The product direction may discuss a driver companion, fleet workflow adapters, and customer-operated deployment. It must not say those integrations exist today, promise savings/compliance, or present the simulated POC as live routing. Use the classifications and writing rules in the documentation baton prompt.
+
+### Build Week reminder
+
+The documentation supports, but does not replace, the required public YouTube demo under three minutes. Use `SUBMISSION/DEVWEEK_REFERENCES.md` to verify current official requirements and links before any submission edit.
+
+### Next baton
+
+- Draft a concise product narrative or Devpost text from these sources.
+- Keep every claimed POC feature tied to `DEMO_SCENARIO.md`, `README.md`, or a named test.
+- Record changed paths, evidence, and one open driver/workflow question here before returning the baton.

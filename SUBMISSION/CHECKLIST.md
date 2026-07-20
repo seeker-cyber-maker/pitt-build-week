@@ -1,14 +1,14 @@
 # PITT Submission Checklist
 
 > Organized by readiness. Only items confirmed by repository evidence are marked ready.
-> Uncertain hackathon requirements are marked as pending verification.
+> Official requirements were checked 2026-07-20; see `SUBMISSION/DEVWEEK_REFERENCES.md` and re-check Devpost immediately before submission.
 
 ---
 
 ## Ready
 
-- [x] **Repository is private and accessible to collaborators.**
-  Confirmed via `CONTROL/COLLABORATORS.md`; Patrick Simard has write access on his lane.
+- [x] **Repository is public and accessible to judges.**
+  Confirmed at `https://github.com/seeker-cyber-maker/pitt-build-week`; collaborator workflow is recorded in `CONTROL/COLLABORATORS.md`.
 
 - [x] **README describes the project scope and demo boundary.**
   `README.md` states the single scenario, local-only data, and the driver-in-control constraint.
@@ -20,7 +20,7 @@
   `npm test` runs Node.js scenario and contract tests. `python3 -m http.server 4173 --directory app` serves the demo. Both documented in `package.json`.
 
 - [x] **Node.js tests pass.**
-  `npm test` — 8 tests across `tests/scenario.test.mjs`, `tests/report-contract.test.mjs`, and `tests/app-ui-contract.test.mjs`. Covers safe/tight/urgent reserves, report contract shape, UI element binding, and provenance wording.
+  `npm test` — 23 tests across planning, day playback, fuel simulation, scenario, report-contract, and UI-contract coverage. Includes traffic-at-predicted-presence, price-event decisions, early close, and review-gated handoff behavior.
 
 - [x] **Python AI/report tests pass.**
   `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` — 24 tests covering deterministic fallback for all three seeded inputs, provider error handling (HTTP error, connection error, timeout, malformed response, empty response), AI success path, configuration detection, secret masking, and report-result contract shape.
@@ -28,8 +28,8 @@
 - [x] **Seeded demo scenario is documented.**
   `DEMO_SCENARIO.md` states every fact with source references to `app/scenario.js` and canonical fixtures.
 
-- [x] **Three-minute video script is written.**
-  `SUBMISSION/VIDEO_SCRIPT.md` follows the visible three-step flow and explains AI tooling use honestly.
+- [ ] **Under-three-minute video script is ready for recording.**
+  `SUBMISSION/VIDEO_SCRIPT.md` needs a final timing trim. Devpost requires a public YouTube video under three minutes with audio showing the project and covering Codex/GPT-5.6 use.
 
 - [x] **Build log is seeded with confirmed milestones.**
   `CODEX_BUILD_LOG.md` records milestones traceable to commit hashes and test evidence.
@@ -46,30 +46,33 @@
 - [x] **Every claim cross-checked against `CONTROL/PRODUCT_SCOPE.md`.**
   No submission artifact claims live data, production safety, regulatory compliance, or real-time optimization.
 
+- [x] **Commercial direction is documented separately from the POC.**
+  `CONTROL/PRODUCT_DIRECTION.md` records driver-companion, fleet-workflow, and customer-operated deployment hypotheses without presenting them as implemented capability.
+
 ---
 
 ## Pending
 
 - [ ] **Video recording.**
-  Script is ready (`SUBMISSION/VIDEO_SCRIPT.md`). Recording needs to be captured from a local browser session.
+  Script targets 2:30 (`SUBMISSION/VIDEO_SCRIPT.md`). Recording needs to be captured from a local browser session, uploaded publicly to YouTube, and checked for clear audio and a working-demo view.
 
 - [ ] **Screenshots for submission.**
   Screenshots of all three demo steps should be captured from a running instance. No screenshots exist in the repository yet.
 
-- [ ] **Devpost or submission-portal project page.**
-  Pending verification: confirm the exact submission platform, required fields, and deadline. The video script and README are ready to adapt.
+- [ ] **Devpost project page.**
+  Submission is through `https://openai.devpost.com/`; deadline is July 21, 2026 at 5:00 PM PDT. Enter the project description, Work and Productivity track, public YouTube video, repository, and Codex `/feedback` session ID.
 
-- [ ] **Deployment or hosted demo URL.**
-  The demo is a static site and could be deployed to any static host. No deployment has been configured. Pending: confirm whether a hosted URL is required or if a local-run video is sufficient.
+- [x] **Hosted demo URL is available.**
+  GitHub Pages is public at `https://seeker-cyber-maker.github.io/pitt-build-week/`. Before submission, perform one clean-browser smoke check against the current release.
 
 - [ ] **Team member listing for submission form.**
   Confirm required fields: name, role, email, GitHub handle. Known contributors: repository owner (integration), Patrick Simard (AI/report boundary).
 
-- [ ] **Submission category or track.**
-  Pending verification: confirm which Build Week category or track applies.
+- [x] **Submission category or track.**
+  `Work and Productivity` fits the driver and fleet workflow focus.
 
-- [ ] **License or open-source disclosure.**
-  No LICENSE file exists in the repository. Pending: confirm whether one is required for submission.
+- [ ] **Public-repository license.**
+  The repository is public, so add an appropriate license before submission or verify that Devpost accepts the public code under the repository's current terms. Private-repository sharing is not the selected path.
 
 ---
 

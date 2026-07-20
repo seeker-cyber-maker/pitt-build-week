@@ -6,7 +6,7 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 
 | Harness | Status |
 | --- | --- |
-| Codex | ** in progress |
+| Codex | ** current correction verified locally; ready to publish |
 | Patrick | ** complete |
 | Research | ** complete |
 
@@ -14,7 +14,7 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 
 # Harness Handoff: Codex
 
-- **Status:** in progress
+- **Status:** current correction verified locally; ready to publish
 - **Lane:** Integration
 - **Branch/worktree:** `harness/codex-integration`
 - **Started:** 2026-07-18
@@ -31,26 +31,43 @@ Generated locally from `HANDOFFS/*.md`. This report does not validate code or me
 - Added canonical safe and tight report input/output fixtures alongside the urgent fixture; all three match the deterministic report generator exactly.
 - Corrected the fallback narrative so below-floor, at-floor, and above-floor reserves use accurate language and a safe scenario does not invent a zero-distance stop.
 - Added all three reserve states to `app/scenario.js`; the visible demo remains intentionally pinned to the urgent scenario.
+- Added `app/planner.js`: a separate deterministic planning preview with a local delivery ledger, declared time-window ordering, reachable simulated refuel selection, and a recommended-versus-rejected route comparison. The map is explicitly made up and cannot be mistaken for live routing.
+- Added `tests/planner.test.mjs` plus UI contract coverage for the visible planning boundary and time-window labels.
+- Made refuel selection price-aware using only seeded CAD-per-litre values plus a simulated detour-cost rule. The UI makes the cheaper-per-litre-but-longer alternative explicit without implying a live fuel-price feed.
+- Added a driver-controlled seeded day playback: five delivery legs, a noon price spike, a 3 PM price drop, explicit keep-or-recalculate choices, and a final delivery-outcome summary. The price events modify only the local planning preview and retain the no-live-data boundary.
+- Added display-only metric/imperial and CAD/USD local-money controls. Distances and fuel volumes convert between physical units; currency values keep their seeded local numeric value and only change label, with an explicit no-exchange-rate disclosure.
+- Added a compact `pitt.trip_handoff.v1` Lua-table machine handoff to the final report. It includes route, refuel, completed leg data, units, and review state; the copy action remains local and the payload explicitly records `external_action = false`.
+- Diagnosed a public toggle failure as stale GitHub Pages module caching: newer HTML had controls while an older `app.js` lacked their listeners. The module now uses a versioned query string; the deployed controls were clicked and verified live.
+- Made Trip Watch authoritative for the report gate: review opens only after an early route closure or normal route completion.
+- An early route closure now preserves recorded delivery results and marks each remaining delivery as `Undelivered` with `Route closed early before delivery attempt`; the report and Lua handoff share that disposition.
+- Added a driver-owned live fuel simulation to Trip Watch. Each completed leg updates the displayed fuel state; the planned refuel visibly moves fuel through approach, refill, and onward delivery; the driver can instead continue without refuelling, cross the reserve floor, reach a simulated empty tank, and then close the route early.
+- Added predictive traffic analysis as a seeded weekday historical-pattern model. It is evaluated at predicted presence times, changes ETA math and compatible-delivery tie-breaking, and is shown per delivery plus in the local machine handoff. It is explicitly not live traffic.
 
 ## Evidence
 
 - **Command or check:** `npm test`
-- **Result:** 6/6 tests passed: safe, tight, and urgent reserve calculations; scope-bounded recommendation; and provenance-bearing local fallback report.
+- **Result:** 19/19 Node tests passed: safe, tight, and urgent reserve calculations; planning-order and refuel checks; price-event transitions; delivery-outcome summary; scope-bounded recommendation; and provenance-bearing local fallback report.
 - **Command or check:** `python3 -m unittest discover -s tests/ai -p "test_*.py" -v`
 - **Result:** 24/24 tests passed, including exact canonical output checks for all three seeded report inputs.
 - **Command or check:** Browser walkthrough at `http://127.0.0.1:4173`
-- **Result:** Trip watch -> driver acknowledgment -> report draft -> confirmation state all rendered and changed local state. The confirmation visibly states that no external action was taken.
+- **Result:** Desktop and mobile walkthroughs completed the five-leg playback, chose both price recalculations, and rendered the final delivery-outcome summary alongside the existing trip watch -> driver acknowledgment -> report draft -> confirmation flow. The confirmation visibly states that no external action was taken.
+- **Command or check:** Local early-close walkthrough.
+- **Result:** Closing after leg 1 produced one recorded `Delivered` outcome and four explicit `Undelivered` outcomes in both the visible report and `pitt.trip_handoff.v1`.
+- **Command or check:** Browser walkthrough of the live-fuel branches.
+- **Result:** Planned refuel raised the tracked fuel from `18.3%` at the pump to `80.0%`, then `67.9%` after leg 2. Declining it reached `6.2%` after leg 2, then `0.0%` with a `13.7%` simulated deficit after leg 3; further driving was disabled while early closure remained available. The Lua handoff recorded `driver_decision = "continue"` and `status = "empty"`.
+- **Command or check:** Browser smoke check of the predictive-traffic planning state.
+- **Result:** The ledger showed the local historical-pattern boundary, `36 simulated min` across the planned corridor, final predicted presence `11:26`, and a per-stop `09:05 · historical peak traffic +10 min` reference. No current-traffic claim is made.
 
 ## Limits Or Risks
 
-- The present scenario is intentionally local. The visible shell is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
+- The present scenario is intentionally local. The planning preview uses invented coordinates, fuel stops, and distances; it is not a live planning engine. The visible exception flow is pinned to the urgent case; safe and tight are canonical fixtures plus tested data states, not yet a visible scenario selector.
 - The static browser shell uses its local deterministic fallback. The provider-neutral Python report module is independently validated and remains ready for a later single integration seam.
 - No provider endpoint is called. The report is explicitly labeled as a deterministic local fallback.
 
 ## Next Small Action
 
-- Run the submission-evidence lane: produce the demo script, checklist, build evidence, and README polish around the now-validated local demo.
-- Keep the current `app/` demo shell as the one visible flow. Do not extract another scenario engine or add a second report generator unless it replaces the existing seam deliberately.
+- **Current correction:** published Trip Watch authority and early-close delivery disposition.
+- **Acceptance:** deploy the current commit to GitHub Pages and smoke-check that the cache-keyed module is served. Keep the seeded/no-live-data boundary.
 
 ---
 
@@ -483,6 +500,71 @@ Together they cover the full decision spectrum. The UI lane can build three dist
 - Review conducted against existing `PITT-DEMO-017` fixture and `app/scenario.js` (commit `19dda1e`).
 - Proposed values grounded in 25+ years driving experience: fuel burn rates, typical policy floors, realistic delays, and corridor stop distances.
 - Only `HANDOFFS/Patrick.md` was modified.
+
+---
+
+## Strategic Positioning Proposal (2026-07-20)
+
+> **Owner:** Patrick (driver perspective / AI-report lane)
+> **Status:** Proposal — awaiting feedback from Integration (Codex) and Submission (Research) before applying to any shared files.
+
+### The Problem with Current Narrative
+
+The README, demo scenario, and video script currently position PITT as a **fuel-reserve management and exception-reporting tool**. This is a crowded space: Trucker Path, Sygic Truck, Waze for Trucks, and dozens of fleet dashboards already do fuel stops and route exceptions. A Build Week submission framed this way will not stand out.
+
+### Proposed Differentiation
+
+PITT's real differentiator is **conversational, real-time AI that saves driving time** — not distance, but **wall-clock time** — by dynamically correcting the course as conditions change. Fuel-stop management is a **bonus feature**, not the headline.
+
+**What makes this unique:**
+- Existing GPS apps predict traffic from historical patterns ("usual Tuesday jam at 3 PM"). PITT would use live traffic + AI reasoning to **react to the unexpected** — an accident, a sudden closure, a delay at the receiver.
+- The correction is **conversation-driven**: the driver asks, the AI explains the trade-off (time vs. distance vs. fuel), and the driver decides. No black-box routing.
+- The goal is **time saved**, not shortest distance. A longer route that avoids a 45-minute standstill is the better route.
+- The fuel stop is **contextual**: inserted only when a delay makes it necessary, not on every trip.
+
+### Driver-Visible Value Proposition (proposed)
+
+> "PITT doesn't just reroute you around traffic — it explains why, shows you the time trade-off, and lets you decide. Fuel stops, report drafts, and delivery adjustments happen automatically in the background when they're needed. You drive less stressed and arrive on time more often."
+
+### What This Means for Submission Documents
+
+| Document | Current framing | Proposed framing |
+|---|---|---|
+| `README.md` | "trip-exception and report assistant for delivery drivers" | "AI co-pilot for delivery drivers: real-time course correction that saves time, with contextual fuel and report handling" |
+| `DEMO_SCENARIO.md` | Fuel-reserve exception as the story | Time-saving course correction as the story; fuel as the consequence of the delay |
+| `VIDEO_SCRIPT.md` | 45 seconds on fuel reserve, 15 seconds on report | 45 seconds on the delay → AI correction → time saved, 15 seconds on fuel + report as supporting features |
+
+### Why the Fuel Angle Is Still Present (But Not Dominant)
+
+- Fuel management is the **seeded demo mechanism** we can show in a local Build Week environment
+- In a production vision, the same AI layer handles fuel, HOS, delivery windows, weather, and receiver delays
+- The demo's deterministic fallback report shows **trust and transparency** — the driver always sees why a correction was suggested
+
+### Request to Other Lanes
+
+**Integration (Codex):** Does this positioning conflict with the current demo scope or the visible app flow? The UI would need minimal changes — mostly copy and header labels — but the narrative shift is significant.
+
+**Submission (Research):** Does the Build Week judging criteria reward "AI-assisted time optimization" more than "fuel management"? If so, this reframing strengthens the submission.
+
+**UI (AGY):** If the three-screen demo gets a selector for safe/tight/urgent, could the urgent screen emphasize the **delay causing the problem** and the **time saved by the correction** rather than only the fuel gap?
+
+### What I Am NOT Proposing
+
+- I am NOT proposing to add live traffic, maps, or real AI endpoints to the Build Week demo. The demo stays local and seeded.
+- I am NOT proposing to change the report contract, AI adapter, or deterministic fallback. Those are technically complete.
+- I am proposing a **narrative and copy change only** for the submission artifacts.
+
+### Next Small Action
+
+1. **Integration (Codex) and Submission (Research) review this proposal.**
+2. If accepted, I will draft revised copy for `README.md`, `DEMO_SCENARIO.md`, and `VIDEO_SCRIPT.md` in a new branch.
+3. If rejected, the current submission documents remain unchanged and the demo ships as-is.
+
+### Evidence
+
+- This proposal is grounded in 25+ years of cross-border driving experience. Every experienced driver knows that "saving kilometers" is worthless if you lose two hours in a traffic jam. Time is the currency that matters.
+- Competitive analysis: Trucker Path = fuel + parking. Sygic = truck-specific routing. Waze = crowd traffic. None of them explain **why** a correction is suggested in natural language, or let the driver weigh time vs. distance vs. fuel in a conversation.
+- PITT's existing AI/report layer (`packages/ai/`) already supports the "explain the trade-off" pattern through its narrative field. The architecture aligns with this vision even if the demo is currently narrow.
 
 ---
 

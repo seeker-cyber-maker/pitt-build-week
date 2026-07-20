@@ -465,3 +465,88 @@ The documentation supports, but does not replace, the required public YouTube de
 - Draft a concise product narrative or Devpost text from these sources.
 - Keep every claimed POC feature tied to `DEMO_SCENARIO.md`, `README.md`, or a named test.
 - Record changed paths, evidence, and one open driver/workflow question here before returning the baton.
+
+---
+
+## Documentation Delivered (2026-07-20)
+
+**Owner:** Patrick / Claude documentation lane  
+**Scope:** Revision of `README.md` + creation of `SUBMISSION/DEVPOST_SUBMISSION.md` per the documentation baton prompt.
+
+### Changed paths
+
+- `README.md` — Rewritten as submission-ready product pitch. Added:
+  - Clear tagline: "AI Co-Pilot for Delivery Drivers"
+  - Vision section with competitive differentiation (time-saving, not fuel-only)
+  - Classification table: Current POC / Simulated / Commercial / Not built
+  - License section (MIT)
+  - Cleaner structure for Devpost judges
+- `SUBMISSION/DEVPOST_SUBMISSION.md` — New file, copy-paste ready for Devpost. Contains:
+  - Project name, tagline, elevator pitch
+  - Problem statement from driver perspective
+  - What PITT does (4 POC steps, all classified)
+  - How we built it (Codex + GPT-5.6 attribution)
+  - Classification table (same as README)
+  - Challenges, accomplishments, what we learned
+  - What's next (validation plan, not launch promises)
+  - Built With, Try It Out, Team sections
+  - Open operational questions
+
+### Factual sources checked
+
+- `CONTROL/PRODUCT_SCOPE.md` — every claimed demo element verified against scope
+- `CONTROL/PRODUCT_DIRECTION.md` — commercial direction separated from POC
+- `DEMO_SCENARIO.md` — every POC feature tied to seeded scenario
+- `CODEX_BUILD_LOG.md` — commit hashes and test evidence cross-checked
+- `SUBMISSION/DEVWEEK_REFERENCES.md` — deadline, track, video requirements verified
+- `tests/ai/test_report_generator.py` — 24 tests pass
+- `tests/*.test.mjs` — 23 Node tests pass
+
+### Simulated vs. future-product boundary
+
+- Every "Current POC" claim is backed by runnable code + tests
+- Every "Simulated" claim is labeled as seeded/local demo data
+- Every "Commercial direction" claim is framed as validation hypothesis
+- No "Not built" capability is implied to exist
+
+### One open operational question
+
+The current demo frames the exception as a fuel-reserve problem. In a real conversation-driven product, should the AI proactively suggest a time-saving corridor correction when it detects a delay — even before fuel becomes urgent — or should it wait for the driver to ask?
+
+---
+
+## Product Narrative Delivered (2026-07-20)
+
+**Owner:** Patrick / Claude documentation lane  
+**Scope:** Create `SUBMISSION/PRODUCT_NARRATIVE.md` per official Build Week rules and `CONTROL/PROMPTS/PATRICK_SUPPORTING_DOCUMENTATION.md`.
+
+### Changed path
+
+- `SUBMISSION/PRODUCT_NARRATIVE.md` — New file. A clear, credible product narrative for judges:
+  - Starts with the real driver/fleet problem (mental math under pressure, existing tools inadequate)
+  - Explains the 4-step working demo with concrete feature descriptions
+  - Explicit "What Is Simulated / What Is Not Built" table
+  - Commercial direction framed as 3 validation stages (Driver Companion → Fleet Workflow → Enterprise), not a launch promise
+  - Evidence section with test counts (23 Node, 24 Python) and live demo URL
+  - No sales voice, no pricing, no savings/compliance claims
+
+### Factual sources checked
+
+- `CONTROL/PRODUCT_SCOPE.md` — every claimed demo element verified
+- `CONTROL/PRODUCT_DIRECTION.md` — commercial direction kept separate from POC
+- `DEMO_SCENARIO.md` — every demo step tied to seeded scenario
+- `CODEX_BUILD_LOG.md` — commit hashes and test evidence cross-checked
+- `SUBMISSION/DEVWEEK_REFERENCES.md` — official rules and judging criteria verified
+
+### Classification discipline
+
+- Current POC claims backed by runnable code + tests
+- Simulated claims labelled as seeded/local demo data
+- Commercial direction claims framed as hypotheses requiring validation
+- No "Not built" capability implied to exist
+
+### Next baton
+
+- Awaiting feedback from Integration (Codex) on whether this narrative should be merged into `main` or adapted for the Devpost submission page.
+- Awaiting video recording from other agents.
+- No further documentation work until direction is confirmed.

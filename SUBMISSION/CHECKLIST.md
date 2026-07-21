@@ -59,8 +59,11 @@
 - [ ] **Entrant eligibility confirmed.**
   The official rules expressly exclude Quebec residents. Confirm the actual individual or organization entering the submission is eligible before submitting.
 
-- [ ] **Video recording.**
-  The measured Qwen3 narration and sync plan target 2:45. Recording needs to be assembled, uploaded publicly to YouTube, and checked for clear audio, captions, and a working-demo view.
+- [x] **Video assembled and locally validated.**
+  `SUBMISSION/final-video/pitt-devweek-submission.mp4` is a 2:45, 1920x1080 H.264/AAC cut with Qwen3 narration and an embedded English subtitle track. The full file decodes without errors and all four outcomes were visually checked. Rebuild it with `scripts/build-submission-video.sh`.
+
+- [ ] **Public video upload.**
+  Upload the final MP4 publicly to YouTube, add `SUBMISSION/PITT_VIDEO_CAPTIONS.srt`, and check playback, audio, captions, and visibility while signed out.
 
 - [x] **Screenshots for submission.**
   Four 1600×1000 captures under `SUBMISSION/screenshots/` show planning context, the uneconomic fuel detour, early route closure, and the report/machine handoff.
@@ -94,9 +97,11 @@
 
 ## Final Review (Before Submitting)
 
-- [ ] Re-run `npm test` — confirm all tests pass.
-- [ ] Re-run `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` — confirm all tests pass.
-- [ ] Run `git diff --check` — confirm no whitespace errors.
+- [x] Re-run `npm test` — 27/27 tests pass.
+- [x] Re-run `npx playwright test` — 4/4 outcome tests pass.
+- [x] Re-run `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` — 24/24 tests pass.
+- [x] Decode the complete final MP4 with FFmpeg — no errors.
+- [x] Run `git diff --check` after final assembly changes — no whitespace errors.
 - [ ] Read every claim in the submission against `CONTROL/PRODUCT_SCOPE.md`.
 - [ ] Confirm no secrets, keys, personal data, or screenshots with personal data in the repository.
 - [ ] Confirm the demo runs from a clean clone with no external dependencies beyond Node.js and Python 3.

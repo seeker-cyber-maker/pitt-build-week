@@ -1,0 +1,1 @@
+At each predicted arrival, PITT checks moving traffic, weather, and road-work patterns. Fuel decisions compare pump price against detour cost. Every signal in this prototype is seeded, not live.

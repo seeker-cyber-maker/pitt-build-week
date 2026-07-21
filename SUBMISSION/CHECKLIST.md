@@ -59,11 +59,11 @@
 - [ ] **Entrant eligibility confirmed.**
   The official rules expressly exclude Quebec residents. Confirm the actual individual or organization entering the submission is eligible before submitting.
 
-- [x] **Video assembled and locally validated.**
-  `SUBMISSION/final-video/pitt-devweek-submission.mp4` is a 2:45, 1920x1080 H.264/AAC cut with Qwen3 narration and an embedded English subtitle track. The full file decodes without errors and all four outcomes were visually checked. Rebuild it with `scripts/build-submission-video.sh`.
+- [x] **Video v2 assembled and locally validated.**
+  `SUBMISSION/final-video/pitt-devweek-submission-v2.mp4` is the synchronized 2:47, 1920x1080 H.264/AAC cut with isolated Qwen3 narration, normalized scene loudness, browser-only outcome footage, one Codex contribution segment, and an embedded English subtitle track. Rebuild it with `scripts/build-submission-video-v2.sh`.
 
 - [ ] **Public video upload.**
-  Upload the final MP4 publicly to YouTube, add `SUBMISSION/PITT_VIDEO_CAPTIONS.srt`, and check playback, audio, captions, and visibility while signed out.
+  Upload the v2 MP4 publicly to YouTube, add `SUBMISSION/PITT_VIDEO_CAPTIONS_V2.srt`, and check playback, audio, captions, and visibility while signed out.
 
 - [x] **Screenshots for submission.**
   Four 1600×1000 captures under `SUBMISSION/screenshots/` show planning context, the uneconomic fuel detour, early route closure, and the report/machine handoff.

@@ -2,11 +2,12 @@
 
 ## Ready artifacts
 
-- Final video: `SUBMISSION/final-video/pitt-devweek-submission.mp4`
-- Duration: 2:45
+- Final video: `SUBMISSION/final-video/pitt-devweek-submission-v2.mp4`
+- Duration: 2:47
 - Format: 1920x1080 H.264 video, AAC audio, embedded English subtitle track
-- Caption upload file: `SUBMISSION/PITT_VIDEO_CAPTIONS.srt`
-- Rebuild command: `scripts/build-submission-video.sh`
+- Caption upload file: `SUBMISSION/PITT_VIDEO_CAPTIONS_V2.srt`
+- Narration regeneration: `scripts/generate-narration-v2.sh`
+- Rebuild command: `scripts/build-submission-video-v2.sh`
 - Public demo: https://seeker-cyber-maker.github.io/pitt-build-week/
 - Public repository: https://github.com/seeker-cyber-maker/pitt-build-week
 - Track: Work and Productivity

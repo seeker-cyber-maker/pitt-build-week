@@ -2,21 +2,19 @@ Delivery plans change. Driver authority should not.
 
 PITT keeps the route visible while traffic, weather, work zones, and fuel conditions move.
 
-When a delivery day changes, drivers must reconcile time windows, fuel reserve, detours, and exception paperwork. Navigation finds a route. PITT explains whether changing it is worthwhile, and records what happened.
+Navigation finds a route. PITT adds the decision layer: time windows, reserve, detours, and a reviewable record.
 
-At each predicted presence time, PITT checks historical traffic, a rain band moving west to east, and a seeded road-work register. Their delays move through the schedule. Every prototype signal is explicitly non-live.
+At each predicted arrival, PITT checks moving traffic, weather, and road-work patterns. Fuel decisions compare pump price against detour cost. Every signal in this prototype is seeded, not live.
 
-Fuel combines pump price with detour cost. The lowest price is not automatically the best decision.
+Outcome one. The price rises. PITT recalculates and waits. The driver chooses refuel. The reserve recovers.
 
-Outcome one. The price rises. PITT displays the impact and waits. The driver chooses the revised fuel stop, restoring the simulated reserve.
+Outcome two. At the price hike, the driver passes. The route advances. Later, the price drops. Now the stop is worthwhile, so the driver selects the refuel stop.
 
-Outcome two. The driver passes the hike. Later, the price drops. Pump and detour cost now make the stop worthwhile, so the driver refuels.
+Outcome three. The tank was already filled that morning. At the first fuel offer, PITT checks again, but another stop is not worth the detour. The driver passes. Later, a lower pump price appears. The saving is only two dollars and seventy-three cents, against sixteen dollars and eighty cents of detour cost. PITT marks the second stop not cost-worthy, and the driver passes again.
 
-Outcome three. The tank was filled that morning. Cheaper fuel appears, but its small saving cannot recover another detour. Cheap fuel is not always economical fuel.
+Outcome four. The driver passes the first offer, then passes the second. After the next leg, fuel reaches zero. PITT blocks progress. The driver closes the route early, and the remaining stops stay undelivered.
 
-Outcome four. The driver passes twice. Fuel reaches zero. PITT blocks progress, and the driver closes the route early. Remaining stops stay recorded as undelivered.
-
-Codex and GPT five point six helped shape these rules, find the missing economic branch, test all four outcomes in the browser, and provide moral support when the demo fought back. Every consequential action remains behind driver review.
+Behind the scenes, Codex and GPT five point six helped shape the rules, add the missing economic branch, and test all four outcomes in the browser. It also provided encouragement and moral support when the demo fought back. Every consequential action remains behind driver review.
 
 PITT produces a reviewable report and local machine handoff. It contacts no carrier and controls no vehicle without an approved next step.
 

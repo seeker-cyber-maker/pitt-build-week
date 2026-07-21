@@ -1,0 +1,1 @@
+Navigation finds a route. PITT adds the decision layer: time windows, reserve, detours, and a reviewable record.

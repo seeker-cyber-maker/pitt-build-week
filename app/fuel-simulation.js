@@ -14,36 +14,35 @@ function fuelStatus(rawFuelPercent) {
   return "within_policy";
 }
 
-export function createFuelSimulation({ completedLegs, fuelDecision, plan }) {
-  const deliverySteps = plan.steps.filter((step) => step.type === "delivery");
-  const refuelApproach = plan.steps.find((step) => step.type === "refuel-approach");
+export function createFuelSimulation({ completedLegs, refuelDecision, morningFilled = false, plan }) {
   const refuel = plan.refuel;
   const operations = [];
   let rawFuelPercent = vehicle.startingFuelPercent;
 
   if (completedLegs >= 1) {
-    rawFuelPercent = deliverySteps[0].fuelAfterPercent;
+    rawFuelPercent -= directDeliveryLegs[0].distanceKm * vehicle.fuelPercentPerMapKm;
     operations.push({ type: "delivery", label: "Leg 1 completed", fuelAfterPercent: rawFuelPercent });
+    if (morningFilled) {
+      rawFuelPercent = vehicle.refuelToPercent;
+      operations.push({ type: "refuel", label: "Morning refuel completed", fuelAfterPercent: rawFuelPercent });
+    }
   }
 
-  if (completedLegs >= 2 && fuelDecision === "refuel") {
-    rawFuelPercent = refuelApproach.fuelAfterPercent;
-    operations.push({ type: "approach", label: `Arrived at ${refuel.at.name}`, fuelAfterPercent: rawFuelPercent });
-    rawFuelPercent = refuel.fuelAfterPercent;
-    operations.push({ type: "refuel", label: `Refuelled at ${refuel.at.name}`, fuelAfterPercent: rawFuelPercent });
-    rawFuelPercent = deliverySteps[1].fuelAfterPercent;
+  if (completedLegs >= 2) {
+    if (!morningFilled && refuelDecision === "noon-spike") {
+      rawFuelPercent = vehicle.refuelToPercent;
+      operations.push({ type: "refuel", label: `Refuelled after price spike at ${refuel.at.name}`, fuelAfterPercent: rawFuelPercent });
+    }
+    rawFuelPercent -= directDeliveryLegs[1].distanceKm * vehicle.fuelPercentPerMapKm;
     operations.push({ type: "delivery", label: "Leg 2 completed", fuelAfterPercent: rawFuelPercent });
-  } else if (completedLegs >= 2 && fuelDecision === "continue") {
-    rawFuelPercent = deliverySteps[0].fuelAfterPercent - (directDeliveryLegs[1].distanceKm * vehicle.fuelPercentPerMapKm);
-    operations.push({ type: "delivery", label: "Leg 2 completed without refuelling", fuelAfterPercent: rawFuelPercent });
   }
 
   for (let index = 2; index < completedLegs; index += 1) {
-    if (fuelDecision === "refuel") {
-      rawFuelPercent = deliverySteps[index].fuelAfterPercent;
-    } else if (fuelDecision === "continue") {
-      rawFuelPercent -= directDeliveryLegs[index].distanceKm * vehicle.fuelPercentPerMapKm;
+    if (index === 2 && !morningFilled && refuelDecision === "afternoon-drop") {
+      rawFuelPercent = vehicle.refuelToPercent;
+      operations.push({ type: "refuel", label: `Refuelled after price drop at ${refuel.at.name}`, fuelAfterPercent: rawFuelPercent });
     }
+    rawFuelPercent -= directDeliveryLegs[index].distanceKm * vehicle.fuelPercentPerMapKm;
     operations.push({ type: "delivery", label: `Leg ${index + 1} completed`, fuelAfterPercent: rawFuelPercent });
   }
 
@@ -53,10 +52,10 @@ export function createFuelSimulation({ completedLegs, fuelDecision, plan }) {
     currentFuelPercent: clampFuel(rawFuelPercent),
     rawFuelPercent,
     reserveFloorPercent: vehicle.minimumReservePercent,
-    fuelDecision,
+    fuelDecision: morningFilled ? "morning" : refuelDecision,
     refuel,
-    refuelOccurred: fuelDecision === "refuel" && completedLegs >= 2,
-    needsFuelDecision: completedLegs === 1 && !fuelDecision,
+    refuelOccurred: morningFilled || Boolean(refuelDecision),
+    needsFuelDecision: false,
     status,
     outOfFuel: status === "empty",
     operations

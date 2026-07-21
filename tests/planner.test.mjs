@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildRecommendedPlan, buildRejectedPlan, createPlanningComparison, deliveryWindowLabels, simulatedPlanningInput, sortDeliveries, trafficForecastBasis } from "../app/planner.js";
+import { buildRecommendedPlan, buildRejectedPlan, checkSeededConstruction, constructionCheckBasis, createPlanningComparison, deliveryWindowLabels, predictSeededWeather, simulatedPlanningInput, sortDeliveries, trafficForecastBasis, weatherForecastBasis } from "../app/planner.js";
 
 test("delivery ledger sorts the seeded time windows before flexible work", () => {
   const ordered = sortDeliveries(simulatedPlanningInput.deliveries).map((delivery) => delivery.window);
@@ -40,4 +40,25 @@ test("predicted traffic uses seeded historical patterns at planned presence time
   assert.ok(travelSteps.every((step) => /historical/.test(step.trafficCondition)));
   assert.match(plan.trafficBasis, /not live traffic/i);
   assert.match(trafficForecastBasis, /predicted arrival time/i);
+});
+
+test("weather cells move across the route and remain explicitly non-live", () => {
+  const early = predictSeededWeather({ x: 90, y: 375 }, { x: 260, y: 250 }, 8 * 60 + 30);
+  const later = predictSeededWeather({ x: 500, y: 180 }, { x: 700, y: 270 }, 11 * 60);
+  const plan = buildRecommendedPlan();
+  assert.equal(early.movement, "rain band moving west to east");
+  assert.notEqual(early.condition, later.condition);
+  assert.ok(plan.steps.filter((step) => step.distanceKm).every((step) => step.weatherMovement));
+  assert.match(weatherForecastBasis, /not live weather/i);
+});
+
+test("construction checks use the seeded work-zone register", () => {
+  const match = checkSeededConstruction({ x: 500, y: 180 }, { x: 700, y: 270 }, 12 * 60);
+  const miss = checkSeededConstruction({ x: 90, y: 375 }, { x: 260, y: 250 }, 9 * 60);
+  const plan = buildRecommendedPlan();
+  assert.match(match.status, /resurfacing/i);
+  assert.ok(match.delayMinutes > 0);
+  assert.equal(miss.delayMinutes, 0);
+  assert.ok(plan.predictedConstructionDelayMinutes >= 0);
+  assert.match(constructionCheckBasis, /not live road status/i);
 });

@@ -1,4 +1,6 @@
-# PITT Video Script
+# PITT Video Script — superseded
+
+> Historical draft only. For recording, use `NARRATION_QWEN3_TTS.txt`, `NARRATION_SYNC_PLAN.md`, `PITT_VIDEO_CAPTIONS.srt`, and the measured cue WAVs.
 
 > Spoken walkthrough, target 2 minutes 45 seconds. Devpost requires a public YouTube demonstration video under three minutes.
 > Match the visible planning preview and three-step flow: local plan → Trip watch → Driver review → Report draft.

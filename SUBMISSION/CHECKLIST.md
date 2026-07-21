@@ -19,8 +19,8 @@
 - [x] **Local run instructions work.**
   `npm test` runs Node.js scenario and contract tests. `python3 -m http.server 4173 --directory app` serves the demo. Both documented in `package.json`.
 
-- [x] **Node.js tests pass.**
-  `npm test` — 23 tests across planning, day playback, fuel simulation, scenario, report-contract, and UI-contract coverage. Includes traffic-at-predicted-presence, price-event decisions, early close, and review-gated handoff behavior.
+- [x] **Node.js and browser tests pass.**
+  `npm test` — 27 tests across planning, moving weather, work-zone checks, day playback, fuel simulation, scenario, report-contract, and UI-contract coverage. `npx playwright test` — 4 browser outcomes covering price-hike refuel, price-drop refuel, the uneconomic second stop, and early closure after passing twice.
 
 - [x] **Python AI/report tests pass.**
   `python3 -m unittest discover -s tests/ai -p "test_*.py" -v` — 24 tests covering deterministic fallback for all three seeded inputs, provider error handling (HTTP error, connection error, timeout, malformed response, empty response), AI success path, configuration detection, secret masking, and report-result contract shape.
@@ -28,8 +28,8 @@
 - [x] **Seeded demo scenario is documented.**
   `DEMO_SCENARIO.md` states every fact with source references to `app/scenario.js` and canonical fixtures.
 
-- [ ] **Under-three-minute video script is ready for recording.**
-  `SUBMISSION/VIDEO_SCRIPT.md` needs a final timing trim. Devpost requires a public YouTube video under three minutes with audio showing the project and covering Codex/GPT-5.6 use.
+- [x] **Under-three-minute narration is ready for recording.**
+  `SUBMISSION/NARRATION_QWEN3_TTS.txt`, the measured Qwen3 WAV, timed cues, captions, and `SUBMISSION/NARRATION_SYNC_PLAN.md` define a 2:45 cut covering the working product plus Codex/GPT-5.6 use.
 
 - [x] **Build log is seeded with confirmed milestones.**
   `CODEX_BUILD_LOG.md` records milestones traceable to commit hashes and test evidence.
@@ -56,11 +56,14 @@
 
 ## Pending
 
-- [ ] **Video recording.**
-  Script targets 2:30 (`SUBMISSION/VIDEO_SCRIPT.md`). Recording needs to be captured from a local browser session, uploaded publicly to YouTube, and checked for clear audio and a working-demo view.
+- [ ] **Entrant eligibility confirmed.**
+  The official rules expressly exclude Quebec residents. Confirm the actual individual or organization entering the submission is eligible before submitting.
 
-- [ ] **Screenshots for submission.**
-  Screenshots of all three demo steps should be captured from a running instance. No screenshots exist in the repository yet.
+- [ ] **Video recording.**
+  The measured Qwen3 narration and sync plan target 2:45. Recording needs to be assembled, uploaded publicly to YouTube, and checked for clear audio, captions, and a working-demo view.
+
+- [x] **Screenshots for submission.**
+  Four 1600×1000 captures under `SUBMISSION/screenshots/` show planning context, the uneconomic fuel detour, early route closure, and the report/machine handoff.
 
 - [ ] **Devpost project page.**
   Submission is through `https://openai.devpost.com/`; deadline is July 21, 2026 at 5:00 PM PDT. Enter the project description, Work and Productivity track, public YouTube video, repository, and Codex `/feedback` session ID.
@@ -74,8 +77,8 @@
 - [x] **Submission category or track.**
   `Work and Productivity` fits the driver and fleet workflow focus.
 
-- [ ] **Public-repository license.**
-  The repository is public, so add an appropriate license before submission or verify that Devpost accepts the public code under the repository's current terms. Private-repository sharing is not the selected path.
+- [x] **Public-repository license.**
+  The public repository includes an MIT `LICENSE`, and `package.json` declares `MIT`.
 
 ---
 

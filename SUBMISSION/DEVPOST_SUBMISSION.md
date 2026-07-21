@@ -23,7 +23,7 @@ PITT is a runnable local proof of concept built for OpenAI Build Week. It uses o
 3. **Exception review:** a seeded delay creates an urgent reserve gap. PITT presents the calculation, one pre-approved simulated stop, alternatives, and an explicit driver-review gate.
 4. **Report draft:** a deterministic local report restates the final facts and delivery outcomes. A separate provider-neutral Python adapter can later draft an approved AI-assisted narrative while preserving deterministic facts.
 
-The POC uses seeded historical traffic at predicted presence times, made-up coordinates, simulated stations, simulated fuel prices, and local delivery proof records. It does **not** use live GPS, mapping, traffic, fuel prices, telematics, ELD, dispatch, or vehicle-control systems.
+The POC uses seeded historical traffic, moving weather, a road-work register at predicted presence times, made-up coordinates, simulated stations, simulated fuel prices, and local delivery proof records. It does **not** use live GPS, mapping, traffic, weather, construction, fuel prices, telematics, ELD, dispatch, or vehicle-control systems.
 
 **Live demo:** https://seeker-cyber-maker.github.io/pitt-build-week/
 
@@ -41,7 +41,8 @@ The POC uses seeded historical traffic at predicted presence times, made-up coor
 
 ## Accomplishments
 
-- 23 Node tests covering planning, Trip Watch, fuel consequences, report gating, and UI wiring.
+- 27 Node tests covering planning, moving weather, work-zone checks, Trip Watch, fuel consequences, report gating, and UI wiring.
+- 4 Playwright browser runs proving every fuel-decision outcome shown in the video.
 - 24 Python tests covering report fallback, provider failures, contract shape, and secret-safe configuration.
 - A driver-controlled end-to-end flow: plan, review a simulated exception, record the result, and produce a local handoff without external action.
 

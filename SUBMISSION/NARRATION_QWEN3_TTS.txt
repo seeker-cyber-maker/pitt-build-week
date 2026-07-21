@@ -1,0 +1,23 @@
+Delivery plans change. Driver authority should not.
+
+PITT keeps the route visible while traffic, weather, work zones, and fuel conditions move.
+
+When a delivery day changes, drivers must reconcile time windows, fuel reserve, detours, and exception paperwork. Navigation finds a route. PITT explains whether changing it is worthwhile, and records what happened.
+
+At each predicted presence time, PITT checks historical traffic, a rain band moving west to east, and a seeded road-work register. Their delays move through the schedule. Every prototype signal is explicitly non-live.
+
+Fuel combines pump price with detour cost. The lowest price is not automatically the best decision.
+
+Outcome one. The price rises. PITT displays the impact and waits. The driver chooses the revised fuel stop, restoring the simulated reserve.
+
+Outcome two. The driver passes the hike. Later, the price drops. Pump and detour cost now make the stop worthwhile, so the driver refuels.
+
+Outcome three. The tank was filled that morning. Cheaper fuel appears, but its small saving cannot recover another detour. Cheap fuel is not always economical fuel.
+
+Outcome four. The driver passes twice. Fuel reaches zero. PITT blocks progress, and the driver closes the route early. Remaining stops stay recorded as undelivered.
+
+Codex and GPT five point six helped shape these rules, find the missing economic branch, test all four outcomes in the browser, and provide moral support when the demo fought back. Every consequential action remains behind driver review.
+
+PITT produces a reviewable report and local machine handoff. It contacts no carrier and controls no vehicle without an approved next step.
+
+And yes. PITT is aware of magic roundabouts. Swindon still gets human review... and possibly a wizard.

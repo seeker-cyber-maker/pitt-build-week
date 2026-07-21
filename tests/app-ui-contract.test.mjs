@@ -74,7 +74,7 @@ test("display toggles keep currency local and only convert units", async () => {
   assert.match(app, /Predicted traffic/);
   assert.match(app, /trafficForecastBasis/);
   assert.doesNotMatch(app, /exchangeRate|USD_PER_CAD/i);
-  assert.match(markup, /src="\.\/app\.js\?v=predictive-traffic-20260719"/);
+  assert.match(markup, /src="\.\/app\.js\?v=route-context-20260721"/);
 });
 
 test("report includes a review-gated Lua machine handoff", async () => {
@@ -87,6 +87,8 @@ test("report includes a review-gated Lua machine handoff", async () => {
   assert.match(markup, /id="copy-machine-handoff"/);
   assert.match(app, /pitt\.trip_handoff\.v1/);
   assert.match(app, /seeded_weekday_historical/);
+  assert.match(app, /seeded_moving_cell/);
+  assert.match(app, /seeded_work_zone_register/);
   assert.match(app, /live_data = false/);
   assert.match(app, /driver_review_required/);
   assert.match(app, /external_action = false/);

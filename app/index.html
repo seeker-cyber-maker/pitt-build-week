@@ -29,7 +29,7 @@
           <div class="display-control"><span>Seeded local money</span><div class="map-switch" role="group" aria-label="Seeded local money label"><button class="map-mode is-selected" data-display-currency="CAD" type="button">CAD</button><button class="map-mode" data-display-currency="USD" type="button">USD</button></div></div>
           <p id="display-basis">Local demo values only. Currency mode changes the display label, not a live exchange rate.</p>
         </div>
-        <p class="planning-intro">A local delivery list is ranked by its stated time window, with seeded weekday traffic patterns applied at each predicted presence time to break compatible ties and estimate arrival delay. Seeded fuel math weighs reachable simulated fuel prices against detour cost before the policy floor would be crossed. The map is a made-up corridor for this demo, not live navigation.</p>
+        <p class="planning-intro">A local delivery list is ranked by its stated time window. Seeded weekday traffic, a west-to-east weather pattern, and a road-work register are checked at each predicted presence time to estimate arrival delay. Seeded fuel math weighs reachable simulated fuel prices against detour cost before the policy floor would be crossed. The map and forecasts are made up for this demo, not live navigation, weather, or road status.</p>
         <div class="planning-summary" id="planning-summary"></div>
         <div class="planning-layout">
           <div class="panel ledger-panel">
@@ -57,7 +57,7 @@
           <div><p class="eyebrow">Seeded day playback</p><h2 id="day-title">Advance the trip when new information arrives</h2></div>
           <span class="status status-draft">Driver-controlled simulation</span>
         </div>
-        <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can compare a recalculation with keeping the current route. Nothing runs automatically.</p>
+        <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can refuel using net pump-plus-detour cost or pass the opportunity. A previously filled tank will not chase cheap fuel when the detour costs more than it saves. Nothing runs automatically.</p>
         <div class="day-layout">
           <div class="panel day-timeline-panel"><h3>Trip watch</h3><div class="day-timeline" id="day-timeline"></div></div>
           <div class="panel day-event-panel"><p class="eyebrow" id="day-current-time">Before departure</p><h3 id="day-current-title">Ready to start the simulated day</h3><p id="day-current-detail"></p><div class="fuel-runtime" id="fuel-runtime" aria-live="polite"><div><span>Simulated fuel</span><strong id="fuel-runtime-value">50%</strong></div><p id="fuel-runtime-detail">Starting reserve. Fuel state updates only when a simulated leg is completed or a refuel choice is taken.</p><span class="status status-safe" id="fuel-runtime-status">Within reserve policy</span></div><div class="event-choice" id="fuel-decision-choice" hidden><p class="impact-analysis" id="fuel-decision-warning"></p><div class="choice-actions"><button class="button primary" id="take-planned-refuel-button" type="button">Take planned refuel</button><button class="button secondary" id="continue-without-refuel-button" type="button">Continue without refuelling</button></div></div><div class="event-choice" id="event-choice" hidden><p class="impact-analysis" id="impact-analysis"></p><div class="choice-actions"><button class="button primary" id="recalculate-route-button" type="button">Recalculate route</button><button class="button secondary" id="keep-route-button" type="button">Keep current route</button></div></div><p class="day-decision" id="day-decision" role="status" hidden></p><div class="choice-actions day-route-actions"><button class="button secondary" id="day-advance-button" type="button">Start simulated day</button><button class="button secondary" id="close-route-early-button" type="button" hidden>Close route early</button></div></div>
@@ -116,7 +116,7 @@
         <div class="action-row"><button class="button secondary" data-go-to="2" type="button">Back to recommendation</button></div>
       </section>
     </main>
-    <footer>Prototype boundary: seeded local scenario · no GPS, mapping, telematics, pricing, or vehicle controls.</footer>
-    <script type="module" src="./app.js?v=predictive-traffic-20260719"></script>
+    <footer>Prototype boundary: seeded local scenario · no live GPS, mapping, telematics, traffic, weather, road-work, pricing, or vehicle controls.</footer>
+    <script type="module" src="./app.js?v=route-context-20260721"></script>
   </body>
 </html>

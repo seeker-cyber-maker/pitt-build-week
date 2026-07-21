@@ -1,6 +1,6 @@
 # OpenAI Build Week References
 
-> Checked 2026-07-20. The official rules and Devpost challenge page control if this file ever conflicts with them.
+> Checked 2026-07-21. The official rules and Devpost challenge page control if this file ever conflicts with them.
 
 ## Official Links
 
@@ -11,6 +11,7 @@
 ## Submission Facts To Keep Current
 
 - **Deadline:** July 21, 2026 at 5:00 PM PDT.
+- **Eligibility warning:** the official rules expressly exclude residents of Quebec. Confirm the actual entrant or organization is eligible before submission; do not infer eligibility from the broader Canada listing.
 - **Track:** PITT belongs in **Work and Productivity**.
 - **Working project:** required; it must run consistently on its stated platform and match the video/text description.
 - **Video:** required; public YouTube, under three minutes, with a clear working demo and audio covering what was built plus how Codex and GPT-5.6 were used.

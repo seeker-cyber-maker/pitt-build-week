@@ -1,12 +1,13 @@
 import { calculateRisk, createFallbackReport, createRecommendation, demoTrip } from "./scenario.js";
-import { createPlanningComparison, deliveryWindowLabels, formatPlanningTime, trafficForecastBasis } from "./planner.js";
-import { deliveryStatusLabels, evaluatePriceEvent, simulatedDayTimeline, summarizeDeliveryProgress } from "./day-playback.js";
+import { constructionCheckBasis, createPlanningComparison, deliveryWindowLabels, formatPlanningTime, trafficForecastBasis, weatherForecastBasis } from "./planner.js";
+import { deliveryStatusLabels, evaluateAdditionalRefuel, evaluatePriceEvent, simulatedDayTimeline, summarizeDeliveryProgress } from "./day-playback.js";
 import { createFuelSimulation, fuelStatusLabels } from "./fuel-simulation.js";
 
 const trip = demoTrip;
 const risk = calculateRisk(trip);
 const recommendation = createRecommendation(trip, risk);
 let planning = createPlanningComparison();
+const demoScenario = new URLSearchParams(window.location.search).get("scenario");
 
 const state = {
   activeStep: 1,
@@ -21,7 +22,8 @@ const state = {
   displayCurrency: "CAD",
   routeClosed: false,
   routeCloseReason: null,
-  fuelDecision: null
+  refuelDecision: null,
+  morningFilled: demoScenario === "morning-filled"
 };
 
 const formatMinutes = (minutes) => `${minutes} min`;
@@ -136,7 +138,8 @@ function renderTripDetails() {
 function currentFuelSimulation() {
   return createFuelSimulation({
     completedLegs: summarizeDeliveryProgress(state.dayIndex).completedLegs.length,
-    fuelDecision: state.fuelDecision,
+    refuelDecision: state.refuelDecision,
+    morningFilled: state.morningFilled,
     plan: planning.recommended
   });
 }
@@ -205,18 +208,20 @@ function renderPlanning() {
     ["Planned refuel", `${recommended.refuel.at.name} at ${formatFuelPrice(recommended.refuel.at.pricePerLitreCad)} · ${formatMoney(recommended.refuel.estimatedPlanCostCad)} total · ${formatFuelVolume(recommended.refuel.refillLitres)}`],
     ["Price tradeoff", lowerPriceAlternative ? `${lowerPriceAlternative.station.name} is cheaper per litre, but its simulated detour costs more.` : `Selected from reachable simulated stations before ${nextDelivery?.name ?? "the next delivery"}.`],
     ["Predicted traffic", `${recommended.predictedTrafficDelayMinutes} simulated min across the planned corridor · estimated final presence ${formatPlanningTime(recommended.predictedArrivalMinutes)} · seeded weekday history`],
-    ["Loop avoided", `${formatDistance(distanceSavedKm)} and ${Math.round(fuelReserveImprovementPercent)} percentage points more ending reserve`]
+    ["Weather movement", `Rain band moving west to east · ${recommended.predictedWeatherDelayMinutes} simulated min across the route · checked at each predicted presence time`],
+    ["Road construction", `${recommended.predictedConstructionDelayMinutes} simulated min · Eastside resurfacing register checked before arrival`],
+    ["Loop avoided", `${formatDistance(distanceSavedKm)} · reserve policy preserved while the rejected loop crosses the floor`]
   ].map(([label, value]) => `<div class="planning-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
 
   document.querySelector("#delivery-list").innerHTML = recommended.deliveries.map((delivery, index) => `
     <div class="delivery-row">
       <span class="delivery-order">${index + 1}</span>
-      <div><strong>${delivery.name}</strong><small>${delivery.id} · predicted ${formatPlanningTime(deliverySteps.get(delivery.id).predictedArrivalMinutes)} · ${deliverySteps.get(delivery.id).trafficCondition} +${deliverySteps.get(delivery.id).predictedTrafficDelayMinutes} min</small></div>
+      <div><strong>${delivery.name}</strong><small>${delivery.id} · predicted ${formatPlanningTime(deliverySteps.get(delivery.id).predictedArrivalMinutes)} · ${deliverySteps.get(delivery.id).trafficCondition} +${deliverySteps.get(delivery.id).predictedTrafficDelayMinutes} min</small><small>${deliverySteps.get(delivery.id).weatherCondition} · ${deliverySteps.get(delivery.id).weatherMovement} +${deliverySteps.get(delivery.id).predictedWeatherDelayMinutes} min · ${deliverySteps.get(delivery.id).constructionStatus} +${deliverySteps.get(delivery.id).predictedConstructionDelayMinutes} min</small></div>
       <span class="delivery-window window-${delivery.window}">${deliveryWindowLabels[delivery.window]}</span>
     </div>
   `).join("");
 
-  document.querySelector("#map-plan-caption").textContent = trafficForecastBasis;
+  document.querySelector("#map-plan-caption").textContent = `${trafficForecastBasis} ${weatherForecastBasis} ${constructionCheckBasis}`;
   renderMap();
 }
 
@@ -230,6 +235,8 @@ function renderDayPlayback() {
   const choice = document.querySelector("#event-choice");
   const decision = document.querySelector("#day-decision");
   const fuelChoice = document.querySelector("#fuel-decision-choice");
+  const refuelButton = document.querySelector("#recalculate-route-button");
+  const passButton = document.querySelector("#keep-route-button");
 
   const earlyClosureOutcomes = state.routeCloseReason === "early" ? createDeliveryOutcomeSummary() : null;
   timeline.innerHTML = simulatedDayTimeline.map((item, index) => {
@@ -256,9 +263,12 @@ function renderDayPlayback() {
     document.querySelector("#day-current-time").textContent = currentItem.time;
     document.querySelector("#day-current-title").textContent = currentItem.title;
     document.querySelector("#day-current-detail").textContent = currentItem.description;
-    document.querySelector("#impact-analysis").textContent = routeWouldChange
-      ? `Impact analysis: recalculating moves the planned refuel from ${currentStation.name} to ${recalculatedStation.name}, changing the simulated refill-and-detour cost from ${formatMoney(planning.recommended.refuel.estimatedPlanCostCad)} to ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`
-      : `Impact analysis: recalculation keeps ${recalculatedStation.name} as the lowest simulated refill-and-detour cost at ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`;
+    const additional = fuel.refuelOccurred ? evaluateAdditionalRefuel(currentItem.id, fuel.currentFuelPercent) : null;
+    document.querySelector("#impact-analysis").textContent = additional
+      ? `Economic check: the tank was already filled earlier. The cheapest pump would save only ${formatMoney(additional.pumpSavingsCad)}, versus ${formatMoney(additional.detourCostCad)} in simulated detour cost. Another fuel stop is not cost-worthy now.`
+      : routeWouldChange
+        ? `Impact analysis: recalculating moves the planned refuel from ${currentStation.name} to ${recalculatedStation.name}, changing the simulated refill-and-detour cost from ${formatMoney(planning.recommended.refuel.estimatedPlanCostCad)} to ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`
+        : `Impact analysis: recalculation keeps ${recalculatedStation.name} as the lowest simulated refill-and-detour cost at ${formatMoney(evaluation.recalculated.recommended.refuel.estimatedPlanCostCad)}.`;
   } else {
     document.querySelector("#day-current-time").textContent = currentItem.time;
     document.querySelector("#day-current-title").textContent = currentItem.title;
@@ -266,17 +276,21 @@ function renderDayPlayback() {
   }
 
   choice.hidden = !hasUnresolvedEvent;
-  fuelChoice.hidden = !fuel.needsFuelDecision || state.routeClosed;
+  fuelChoice.hidden = true;
+  refuelButton.textContent = fuel.refuelOccurred ? "Check another refuel" : "Refuel at best net-cost stop";
+  passButton.textContent = "Pass this fuel opportunity";
   document.querySelector("#fuel-decision-warning").textContent = `The planned stop at ${fuel.refuel.at.name} reaches the pump with ${fuel.refuel.fuelBeforePercent.toFixed(1)}% fuel, then restores the simulated tank to ${fuel.refuel.fuelAfterPercent.toFixed(0)}%. Continuing without refuelling is allowed, but will leave the next delivery below the ${fuel.reserveFloorPercent}% reserve floor.`;
   const eventChoice = currentItem?.kind === "event" ? state.eventChoices[currentItem.id] : null;
   decision.hidden = !eventChoice;
   if (eventChoice) {
-    decision.textContent = eventChoice === "recalculate"
-      ? `Route recalculated from the seeded ${currentItem.time} fuel prices. The planning panel now reflects the selected stop.`
-      : "Route kept. The recalculated alternative remains visible in the impact analysis.";
+    decision.textContent = eventChoice === "refuel"
+      ? `Refuel selected after the ${currentItem.title.toLowerCase()}. The stop minimizes seeded pump plus detour cost.`
+      : eventChoice === "not-worthwhile"
+        ? "No additional stop recommended: the cheaper pump price does not recover the detour cost after the morning fill."
+        : "Fuel opportunity passed. The driver keeps the current corridor.";
   }
 
-  advanceButton.disabled = !nextItem || hasUnresolvedEvent || fuel.needsFuelDecision || fuel.outOfFuel;
+  advanceButton.disabled = !nextItem || hasUnresolvedEvent || fuel.outOfFuel;
   advanceButton.textContent = fuel.outOfFuel
     ? "Out of fuel — close route early"
     : fuel.needsFuelDecision
@@ -362,8 +376,10 @@ function createMachineHandoff() {
     "  external_action = false,",
     `  units = { distance = \"${distanceUnit}\", volume = \"${volumeUnit}\", money = \"${state.displayCurrency}\", money_basis = \"seeded_local_no_conversion\" },`,
     `  traffic = { mode = \"seeded_weekday_historical\", total_delay_minutes = ${planning.recommended.predictedTrafficDelayMinutes}, estimated_final_presence = \"${formatPlanningTime(planning.recommended.predictedArrivalMinutes)}\", live_data = false },`,
+    `  weather = { mode = \"seeded_moving_cell\", movement = \"west_to_east\", total_delay_minutes = ${planning.recommended.predictedWeatherDelayMinutes}, live_data = false },`,
+    `  construction = { mode = \"seeded_work_zone_register\", total_delay_minutes = ${planning.recommended.predictedConstructionDelayMinutes}, live_data = false },`,
     `  refuel = { station = \"${refuel.at.id}\", price = ${machineFuelPrice(refuel.at.pricePerLitreCad).toFixed(3)}, price_unit = \"${state.displayCurrency}_per_${volumeUnit}\", estimated_cost = ${refuel.estimatedPlanCostCad.toFixed(2)} },`,
-    `  fuel = { start_percent = ${fuel.startingFuelPercent.toFixed(1)}, current_percent = ${fuel.currentFuelPercent.toFixed(1)}, reserve_floor_percent = ${fuel.reserveFloorPercent.toFixed(1)}, driver_decision = \"${state.fuelDecision ?? "pending"}\", status = \"${fuel.status}\" },`,
+    `  fuel = { start_percent = ${fuel.startingFuelPercent.toFixed(1)}, current_percent = ${fuel.currentFuelPercent.toFixed(1)}, reserve_floor_percent = ${fuel.reserveFloorPercent.toFixed(1)}, driver_decision = \"${fuel.fuelDecision ?? "pending"}\", status = \"${fuel.status}\" },`,
     `  route = { distance = ${machineDistance(planning.recommended.distanceKm).toFixed(1)}, recorded_legs = ${summary.recordedLegs.length}, completed_distance = ${machineDistance(summary.completedDistanceKm).toFixed(1)}, close_reason = "${state.routeCloseReason ?? "open"}" },`,
     "  delivery_legs = {",
     ...legs,
@@ -385,8 +401,8 @@ function renderMap() {
   const polyline = (points) => points.map((point) => `${point.x},${point.y}`).join(" ");
   const allNodes = [planning.input.origin, ...planning.input.deliveries, ...planning.input.stations];
   const activeDescription = state.mapMode === "recommended"
-    ? `${formatDistance(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for ${formatFuelPrice(activePlan.refuel.at.pricePerLitreCad)}; ${formatMoney(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ${activePlan.predictedTrafficDelayMinutes} simulated traffic minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
-    : `${formatDistance(activePlan.distanceKm)}. No planned refuel; ${activePlan.predictedTrafficDelayMinutes} simulated traffic minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
+    ? `${formatDistance(activePlan.distanceKm)}. Refuel at ${activePlan.refuel.at.name} for ${formatFuelPrice(activePlan.refuel.at.pricePerLitreCad)}; ${formatMoney(activePlan.refuel.estimatedPlanCostCad)} simulated refill-and-detour cost; ${activePlan.predictedTrafficDelayMinutes} traffic, ${activePlan.predictedWeatherDelayMinutes} weather, and ${activePlan.predictedConstructionDelayMinutes} road-work delay minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}.`
+    : `${formatDistance(activePlan.distanceKm)}. No planned refuel; ${activePlan.predictedTrafficDelayMinutes} traffic, ${activePlan.predictedWeatherDelayMinutes} weather, and ${activePlan.predictedConstructionDelayMinutes} road-work delay minutes at predicted presence times; ending reserve ${formatPercent(activePlan.endingFuelPercent)}. ${activePlan.reasons.join(" ")}`;
 
   document.querySelector("#map-canvas").innerHTML = `
     <svg viewBox="0 0 860 500" role="img" aria-label="${activePlan.label}: ${activeDescription}">
@@ -487,24 +503,19 @@ document.querySelector("#close-route-early-button").addEventListener("click", ()
   state.routeCloseReason = "early";
   state.highestUnlockedStep = Math.max(state.highestUnlockedStep, 2);
   render();
-  goTo(2);
-});
-document.querySelector("#take-planned-refuel-button").addEventListener("click", () => {
-  if (!currentFuelSimulation().needsFuelDecision) return;
-  state.fuelDecision = "refuel";
-  render();
-});
-document.querySelector("#continue-without-refuel-button").addEventListener("click", () => {
-  if (!currentFuelSimulation().needsFuelDecision) return;
-  state.fuelDecision = "continue";
-  render();
 });
 document.querySelector("#recalculate-route-button").addEventListener("click", () => {
   const currentItem = simulatedDayTimeline[state.dayIndex];
   if (!currentItem || currentItem.kind !== "event") return;
+  const fuel = currentFuelSimulation();
   const evaluation = evaluatePriceEvent(currentItem.id);
-  planning = evaluation.recalculated;
-  state.eventChoices[currentItem.id] = "recalculate";
+  if (fuel.refuelOccurred) {
+    state.eventChoices[currentItem.id] = "not-worthwhile";
+  } else {
+    planning = evaluation.recalculated;
+    state.refuelDecision = currentItem.id;
+    state.eventChoices[currentItem.id] = "refuel";
+  }
   state.mapMode = "recommended";
   renderPlanning();
   render();
@@ -512,7 +523,7 @@ document.querySelector("#recalculate-route-button").addEventListener("click", ()
 document.querySelector("#keep-route-button").addEventListener("click", () => {
   const currentItem = simulatedDayTimeline[state.dayIndex];
   if (!currentItem || currentItem.kind !== "event") return;
-  state.eventChoices[currentItem.id] = "keep";
+  state.eventChoices[currentItem.id] = "pass";
   render();
 });
 document.querySelectorAll("[data-go-to]").forEach((button) => {

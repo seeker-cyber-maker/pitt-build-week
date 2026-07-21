@@ -15,6 +15,8 @@ const windowPriority = Object.freeze({
 });
 
 export const trafficForecastBasis = "Seeded weekday historical pattern at predicted arrival time; not live traffic.";
+export const weatherForecastBasis = "Seeded west-to-east weather-cell movement at predicted presence time; not live weather.";
+export const constructionCheckBasis = "Seeded road-work register checked at predicted presence time; not live road status.";
 
 const planningStartMinutes = 8 * 60 + 30;
 
@@ -43,6 +45,48 @@ export function predictHistoricalTraffic(from, to, departureMinutes) {
     condition,
     delayMinutes: Math.max(1, Math.round(distanceKm * multiplier * corridorWeight)),
     basis: trafficForecastBasis
+  };
+}
+
+export function predictSeededWeather(from, to, departureMinutes) {
+  const midpointX = (from.x + to.x) / 2;
+  const cellCentreX = 185 + ((departureMinutes - planningStartMinutes) * 2.2);
+  const distanceFromCell = Math.abs(midpointX - cellCentreX);
+  const affected = distanceFromCell < 165;
+  const condition = affected ? (distanceFromCell < 80 ? "steady rain" : "passing showers") : "dry behind the rain band";
+
+  return {
+    condition,
+    movement: "rain band moving west to east",
+    delayMinutes: affected ? (distanceFromCell < 80 ? 4 : 2) : 0,
+    basis: weatherForecastBasis
+  };
+}
+
+const seededWorkZones = Object.freeze([
+  Object.freeze({
+    id: "WORK-17",
+    name: "Eastside resurfacing check",
+    x: 650,
+    y: 315,
+    startsAtMinutes: 11 * 60,
+    endsAtMinutes: 17 * 60,
+    delayMinutes: 5
+  })
+]);
+
+export function checkSeededConstruction(from, to, departureMinutes) {
+  const midpoint = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+  const workZone = seededWorkZones.find((zone) => {
+    const nearRoute = Math.hypot(midpoint.x - zone.x, midpoint.y - zone.y) < 170;
+    return nearRoute && departureMinutes >= zone.startsAtMinutes && departureMinutes < zone.endsAtMinutes;
+  });
+
+  return {
+    status: workZone ? `${workZone.name} flagged` : "no matching seeded work zone",
+    workZone: workZone ?? null,
+    delayMinutes: workZone?.delayMinutes ?? 0,
+    basis: constructionCheckBasis
   };
 }
 
@@ -126,8 +170,10 @@ function addLeg(steps, from, to, fuelPercent, vehicle, departureMinutes, type = 
   const distanceKm = mapDistanceKm(from, to);
   const nextFuelPercent = fuelPercent - fuelCost(distanceKm, vehicle);
   const traffic = predictHistoricalTraffic(from, to, departureMinutes);
+  const weather = predictSeededWeather(from, to, departureMinutes);
+  const construction = checkSeededConstruction(from, to, departureMinutes);
   const baselineTravelMinutes = Math.max(1, Math.round(distanceKm * 1.2));
-  const plannedTravelMinutes = baselineTravelMinutes + traffic.delayMinutes;
+  const plannedTravelMinutes = baselineTravelMinutes + traffic.delayMinutes + weather.delayMinutes + construction.delayMinutes;
   const predictedArrivalMinutes = departureMinutes + plannedTravelMinutes;
   steps.push({
     type,
@@ -141,7 +187,14 @@ function addLeg(steps, from, to, fuelPercent, vehicle, departureMinutes, type = 
     baselineTravelMinutes,
     predictedTrafficDelayMinutes: traffic.delayMinutes,
     trafficCondition: traffic.condition,
-    trafficBasis: traffic.basis
+    trafficBasis: traffic.basis,
+    predictedWeatherDelayMinutes: weather.delayMinutes,
+    weatherCondition: weather.condition,
+    weatherMovement: weather.movement,
+    weatherBasis: weather.basis,
+    predictedConstructionDelayMinutes: construction.delayMinutes,
+    constructionStatus: construction.status,
+    constructionBasis: construction.basis
   });
   return { fuelPercent: nextFuelPercent, predictedArrivalMinutes };
 }
@@ -192,6 +245,8 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
   const distanceKm = steps.filter((step) => step.distanceKm).reduce((total, step) => total + step.distanceKm, 0);
   const refuel = steps.find((step) => step.type === "refuel");
   const predictedTrafficDelayMinutes = steps.reduce((total, step) => total + (step.predictedTrafficDelayMinutes ?? 0), 0);
+  const predictedWeatherDelayMinutes = steps.reduce((total, step) => total + (step.predictedWeatherDelayMinutes ?? 0), 0);
+  const predictedConstructionDelayMinutes = steps.reduce((total, step) => total + (step.predictedConstructionDelayMinutes ?? 0), 0);
 
   return {
     label: "Recommended plan",
@@ -202,7 +257,11 @@ export function buildRecommendedPlan(input = simulatedPlanningInput) {
     refuel,
     predictedArrivalMinutes: predictedMinutes,
     predictedTrafficDelayMinutes,
+    predictedWeatherDelayMinutes,
+    predictedConstructionDelayMinutes,
     trafficBasis: trafficForecastBasis,
+    weatherBasis: weatherForecastBasis,
+    constructionBasis: constructionCheckBasis,
     meetsReservePolicy: fuelPercent >= vehicle.minimumReservePercent
   };
 }
@@ -232,7 +291,11 @@ export function buildRejectedPlan(input = simulatedPlanningInput) {
     endingFuelPercent: fuelPercent,
     predictedArrivalMinutes: predictedMinutes,
     predictedTrafficDelayMinutes: steps.reduce((total, step) => total + step.predictedTrafficDelayMinutes, 0),
+    predictedWeatherDelayMinutes: steps.reduce((total, step) => total + step.predictedWeatherDelayMinutes, 0),
+    predictedConstructionDelayMinutes: steps.reduce((total, step) => total + step.predictedConstructionDelayMinutes, 0),
     trafficBasis: trafficForecastBasis,
+    weatherBasis: weatherForecastBasis,
+    constructionBasis: constructionCheckBasis,
     refuel: null,
     meetsReservePolicy: false,
     reasons: [

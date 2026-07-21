@@ -15,16 +15,9 @@ export const simulatedDayTimeline = Object.freeze([
     delivery: Object.freeze({ status: "delivered", proof: "Recipient barcode scanned" })
   }),
   Object.freeze({
-    kind: "leg",
-    time: "11:20",
-    title: "Leg 2 · Lakeside to North Market",
-    distanceKm: 27.6,
-    delivery: Object.freeze({ status: "nobody_on_site", proof: "Delivery location picture taken" })
-  }),
-  Object.freeze({
     kind: "event",
     id: "noon-spike",
-    time: "12:00",
+    time: "11:20",
     title: "Seeded price spike",
     description: "Cedar rises sharply while South Loop remains lower priced.",
     prices: Object.freeze({ "FUEL-1": 2.65, "FUEL-2": 2.29, "FUEL-3": 1.82 })
@@ -32,9 +25,9 @@ export const simulatedDayTimeline = Object.freeze([
   Object.freeze({
     kind: "leg",
     time: "13:35",
-    title: "Leg 3 · North Market to Eastside Pharmacy",
-    distanceKm: 22.1,
-    delivery: Object.freeze({ status: "undelivered", proof: "Access gate closed; no handoff completed" })
+    title: "Leg 2 · Lakeside to North Market",
+    distanceKm: 27.6,
+    delivery: Object.freeze({ status: "nobody_on_site", proof: "Delivery location picture taken" })
   }),
   Object.freeze({
     kind: "event",
@@ -43,6 +36,13 @@ export const simulatedDayTimeline = Object.freeze([
     title: "Seeded price drop",
     description: "Cedar and South Loop both lower their seeded prices.",
     prices: Object.freeze({ "FUEL-1": 1.55, "FUEL-2": 1.59, "FUEL-3": 1.44 })
+  }),
+  Object.freeze({
+    kind: "leg",
+    time: "15:35",
+    title: "Leg 3 · North Market to Eastside Pharmacy",
+    distanceKm: 22.1,
+    delivery: Object.freeze({ status: "undelivered", proof: "Access gate closed; no handoff completed" })
   }),
   Object.freeze({
     kind: "leg",
@@ -86,6 +86,28 @@ export function evaluatePriceEvent(eventId) {
     routeChanged: baselineStation.id !== recalculatedStation.id,
     baselineStation,
     recalculatedStation
+  };
+}
+
+export function evaluateAdditionalRefuel(eventId, currentFuelPercent) {
+  const evaluation = evaluatePriceEvent(eventId);
+  const selected = evaluation.recalculated.recommended.refuel;
+  const candidates = [{ station: selected.at, detourCostCad: selected.detourCostCad }, ...selected.alternatives];
+  const cheapestPump = [...candidates].sort((left, right) => left.station.pricePerLitreCad - right.station.pricePerLitreCad)[0];
+  const vehicle = simulatedPlanningInput.vehicle;
+  const topUpLitres = Math.max(0, ((vehicle.refuelToPercent - currentFuelPercent) / 100) * vehicle.tankLitres);
+  const pumpSavingsCad = Math.max(0, (selected.at.pricePerLitreCad - cheapestPump.station.pricePerLitreCad) * topUpLitres);
+  const detourCostCad = cheapestPump.detourCostCad;
+
+  return {
+    ...evaluation,
+    currentFuelPercent,
+    topUpLitres,
+    cheapestPump,
+    pumpSavingsCad,
+    detourCostCad,
+    netBenefitCad: pumpSavingsCad - detourCostCad,
+    worthwhile: pumpSavingsCad > detourCostCad
   };
 }
 

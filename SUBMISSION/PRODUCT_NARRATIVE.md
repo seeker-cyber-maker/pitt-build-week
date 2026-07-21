@@ -34,7 +34,8 @@ No pricing, savings, safety, compliance, service-level, or integration claim has
 
 ## Evidence
 
-- `npm test`: 23 tests across planning, playback, fuel simulation, scenarios, report contract, and UI contract.
+- `npm test`: 27 tests across planning, moving weather, work-zone checks, playback, fuel simulation, scenarios, report contract, and UI contract.
+- `npx playwright test`: four browser runs covering every fuel-decision outcome shown in the video.
 - `python3 -m unittest discover -s tests/ai -p 'test_*.py' -v`: 24 tests for deterministic fallback, provider failure handling, response validation, configuration, secret masking, and the report contract.
 - Public demo: https://seeker-cyber-maker.github.io/pitt-build-week/
 

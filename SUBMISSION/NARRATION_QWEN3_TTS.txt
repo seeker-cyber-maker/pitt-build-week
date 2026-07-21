@@ -10,11 +10,11 @@ Outcome one. The price rises. PITT recalculates and waits. The driver chooses re
 
 Outcome two. At the price hike, the driver passes. The route advances. Later, the price drops. Now the stop is worthwhile, so the driver selects the refuel stop.
 
-Outcome three. The tank was already filled that morning. At the first fuel offer, PITT checks again, but another stop is not worth the detour. The driver passes. Later, a lower pump price appears. The saving is only two dollars and seventy-three cents, against sixteen dollars and eighty cents of detour cost. PITT marks the second stop not cost-worthy, and the driver passes again.
+Outcome three. The tank was already filled that morning. At the first fuel offer, PITT checks again, but another stop is not worth the detour. The driver passes. Later, a lower pump price appears. The saving is only two dollars and seventy-three cents, against sixteen dollars and eighty cents of detour cost. PITT marks the second stop not cost-worthy. The driver passes again, and the route remains viable.
 
-Outcome four. The driver passes the first offer, then passes the second. After the next leg, fuel reaches zero. PITT blocks progress. The driver closes the route early, and the remaining stops stay undelivered.
+Outcome four. The driver passes the first offer, then the second. After the next leg, fuel reaches zero. PITT blocks unsafe continuation and offers to close the route early. The driver confirms. The remaining stops stay recorded as undelivered.
 
-Behind the scenes, Codex and GPT five point six helped shape the rules, add the missing economic branch, and test all four outcomes in the browser. It also provided encouragement and moral support when the demo fought back. Every consequential action remains behind driver review.
+Behind the scenes, Codex and GPT five point six helped shape the rules, add the missing economic branch, and test all four outcomes in the browser. It also provided encouragement and moral support when the demo fought back. It may look a little like a game, but route safety is not one. PITT offers options; the driver decides.
 
 PITT produces a reviewable report and local machine handoff. It contacts no carrier and controls no vehicle without an approved next step.
 

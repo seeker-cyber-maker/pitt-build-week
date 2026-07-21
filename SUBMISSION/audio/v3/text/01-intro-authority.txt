@@ -1,0 +1,1 @@
+A delivery plan can change. Driver authority should not.

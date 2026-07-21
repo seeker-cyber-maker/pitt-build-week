@@ -29,7 +29,7 @@
   `DEMO_SCENARIO.md` states every fact with source references to `app/scenario.js` and canonical fixtures.
 
 - [x] **Under-three-minute narration is ready for recording.**
-  `SUBMISSION/NARRATION_QWEN3_TTS.txt`, the measured Qwen3 WAV, timed cues, captions, and `SUBMISSION/NARRATION_SYNC_PLAN.md` define a 2:45 cut covering the working product plus Codex/GPT-5.6 use.
+  `SUBMISSION/NARRATION_QWEN3_TTS_V3.txt`, verified Qwen3 cues, timed captions, and `SUBMISSION/NARRATION_SYNC_PLAN_V3.md` define a 2:58.53 cut. Every cue has measured pre-roll, scene-level final-AAC transcription, and consistent `Pitt` pronunciation.
 
 - [x] **Build log is seeded with confirmed milestones.**
   `CODEX_BUILD_LOG.md` records milestones traceable to commit hashes and test evidence.
@@ -59,11 +59,11 @@
 - [ ] **Entrant eligibility confirmed.**
   The official rules expressly exclude Quebec residents. Confirm the actual individual or organization entering the submission is eligible before submitting.
 
-- [x] **Video v2 assembled and locally validated.**
-  `SUBMISSION/final-video/pitt-devweek-submission-v2.mp4` is the synchronized 2:47, 1920x1080 H.264/AAC cut with isolated Qwen3 narration, normalized scene loudness, browser-only outcome footage, one Codex contribution segment, and an embedded English subtitle track. Rebuild it with `scripts/build-submission-video-v2.sh`.
+- [x] **Video v3 assembled and locally validated.**
+  `SUBMISSION/final-video/pitt-devweek-submission-v3.mp4` is the final synchronized 2:58.53, 1920x1080 H.264/AAC cut. It has verified `Pitt` pronunciation, protected cue starts, scenario starting fuel conditions, scene-normalized narration, browser-only outcomes, one Codex contribution segment, and embedded English subtitles. Rebuild it with `scripts/build-submission-video-v3.sh`.
 
 - [ ] **Public video upload.**
-  Upload the v2 MP4 publicly to YouTube, add `SUBMISSION/PITT_VIDEO_CAPTIONS_V2.srt`, and check playback, audio, captions, and visibility while signed out.
+  Upload the v3 MP4 publicly to YouTube, add `SUBMISSION/PITT_VIDEO_CAPTIONS_V3.srt`, and check playback, audio, captions, and visibility while signed out.
 
 - [x] **Screenshots for submission.**
   Four 1600×1000 captures under `SUBMISSION/screenshots/` show planning context, the uneconomic fuel detour, early route closure, and the report/machine handoff.

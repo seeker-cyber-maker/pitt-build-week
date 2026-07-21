@@ -22,7 +22,7 @@
       <section class="planning" aria-labelledby="planning-title">
         <div class="screen-heading">
           <div><p class="eyebrow">Simulated planning ledger</p><h2 id="planning-title">Sort the work before the road gets expensive</h2></div>
-          <span class="status status-safe">Local map simulation</span>
+          <span class="status status-safe">Seeded route model</span>
         </div>
         <div class="display-controls" aria-label="Simulation display settings">
           <div class="display-control"><span>Distance &amp; volume</span><div class="map-switch" role="group" aria-label="Distance and volume units"><button class="map-mode is-selected" data-display-unit="metric" type="button">Metric</button><button class="map-mode" data-display-unit="imperial" type="button">Imperial</button></div></div>
@@ -54,10 +54,10 @@
 
       <section class="day-playback" aria-labelledby="day-title">
         <div class="screen-heading">
-          <div><p class="eyebrow">Seeded day playback</p><h2 id="day-title">Advance the trip when new information arrives</h2></div>
-          <span class="status status-draft">Driver-controlled simulation</span>
+          <div><p class="eyebrow">Seeded route review</p><h2 id="day-title">Advance the trip when new information arrives</h2></div>
+          <span class="status status-draft">Driver-controlled prototype</span>
         </div>
-        <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can refuel using net pump-plus-detour cost or pass the opportunity. A previously filled tank will not chase cheap fuel when the detour costs more than it saves. Nothing runs automatically.</p>
+        <p class="planning-intro">Each advance completes one simulated leg or pauses at a seeded fuel-price event. The driver can refuel using net pump-plus-detour cost or pass the opportunity. A previously filled tank will not chase cheap fuel when the detour costs more than it saves. PITT presents options; the driver decides. Nothing runs automatically.</p>
         <div class="day-layout">
           <div class="panel day-timeline-panel"><h3>Trip watch</h3><div class="day-timeline" id="day-timeline"></div></div>
           <div class="panel day-event-panel"><p class="eyebrow" id="day-current-time">Before departure</p><h3 id="day-current-title">Ready to start the simulated day</h3><p id="day-current-detail"></p><div class="fuel-runtime" id="fuel-runtime" aria-live="polite"><div><span>Simulated fuel</span><strong id="fuel-runtime-value">50%</strong></div><p id="fuel-runtime-detail">Starting reserve. Fuel state updates only when a simulated leg is completed or a refuel choice is taken.</p><span class="status status-safe" id="fuel-runtime-status">Within reserve policy</span></div><div class="event-choice" id="fuel-decision-choice" hidden><p class="impact-analysis" id="fuel-decision-warning"></p><div class="choice-actions"><button class="button primary" id="take-planned-refuel-button" type="button">Take planned refuel</button><button class="button secondary" id="continue-without-refuel-button" type="button">Continue without refuelling</button></div></div><div class="event-choice" id="event-choice" hidden><p class="impact-analysis" id="impact-analysis"></p><div class="choice-actions"><button class="button primary" id="recalculate-route-button" type="button">Recalculate route</button><button class="button secondary" id="keep-route-button" type="button">Keep current route</button></div></div><p class="day-decision" id="day-decision" role="status" hidden></p><div class="choice-actions day-route-actions"><button class="button secondary" id="day-advance-button" type="button">Start simulated day</button><button class="button secondary" id="close-route-early-button" type="button" hidden>Close route early</button></div></div>

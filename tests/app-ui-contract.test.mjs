@@ -17,7 +17,7 @@ test("renderer references only existing review controls", async () => {
 
   assert.match(markup, /Projected reserve falls below the policy floor/);
   assert.match(markup, /Simulated planning ledger/);
-  assert.match(markup, /Local map simulation/);
+  assert.match(markup, /Seeded route model/);
   assert.equal(deliveryWindowLabels.before_noon, "Before noon");
   assert.equal(deliveryWindowLabels.flexible, "No time specified");
   assert.match(app, /below policy floor \(gap: \$\{risk.reserveGapPercent\}%\)/);
@@ -51,7 +51,7 @@ test("seeded day playback exposes two explicit driver choices and a delivery rep
     readFile(new URL("../app/index.html", import.meta.url), "utf8")
   ]);
 
-  assert.match(markup, /Seeded day playback/);
+  assert.match(markup, /Seeded route review/);
   assert.match(markup, /id="recalculate-route-button"/);
   assert.match(markup, /id="keep-route-button"/);
   assert.match(markup, /id="delivery-report-summary"/);
@@ -121,5 +121,5 @@ test("Trip Watch exposes a driver-owned live fuel decision", async () => {
   assert.match(markup, /id="continue-without-refuel-button"/);
   assert.match(markup, /id="fuel-runtime-value"/);
   assert.match(app, /currentFuelSimulation/);
-  assert.match(app, /Out of fuel — close route early/);
+  assert.match(app, /Out of fuel — choose closure option/);
 });

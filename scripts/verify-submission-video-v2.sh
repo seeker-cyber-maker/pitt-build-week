@@ -4,9 +4,14 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-video="SUBMISSION/final-video/pitt-devweek-submission-v2.mp4"
-captions="SUBMISSION/PITT_VIDEO_CAPTIONS_V2.srt"
-cue_dir="SUBMISSION/audio/v2"
+version="${PITT_VIDEO_VERSION:-v2}"
+video="SUBMISSION/final-video/pitt-devweek-submission-${version}.mp4"
+case "$version" in
+  v2) captions="SUBMISSION/PITT_VIDEO_CAPTIONS_V2.srt"; sync_plan="SUBMISSION/NARRATION_SYNC_PLAN.md" ;;
+  v3) captions="SUBMISSION/PITT_VIDEO_CAPTIONS_V3.srt"; sync_plan="SUBMISSION/NARRATION_SYNC_PLAN_V3.md" ;;
+  *) printf 'Unsupported video version: %s\n' "$version" >&2; exit 2 ;;
+esac
+cue_dir="SUBMISSION/audio/$version"
 expected=(01-intro-authority 02-intro-context 03-product-layer 04-moving-signals 05-outcome-1 06-outcome-2 07-outcome-3 08-outcome-4 09-codex-collaboration 10-machine-handoff 11-magic-roundabout)
 
 [[ -s "$video" ]] || { printf 'Missing final video: %s\n' "$video" >&2; exit 1; }
@@ -31,5 +36,5 @@ stream_types="$(ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$v
 
 ffmpeg -v error -i "$video" -f null -
 
-printf 'PASS: %s seconds; audio, subtitle, and video streams present; full decode succeeded.\n' "$duration"
-printf 'Manual QA still required: review every action anchor in SUBMISSION/NARRATION_SYNC_PLAN.md and listen across every scene join.\n'
+printf 'PASS %s: %s seconds; audio, subtitle, and video streams present; full decode succeeded.\n' "$version" "$duration"
+printf 'Manual QA still required: review every action anchor in %s and listen across every scene join.\n' "$sync_plan"

@@ -55,7 +55,7 @@ test("run 4 — pass both opportunities, run out, and close early", async ({ pag
   await pass(page);
   await advance(page); // leg 3, tank reaches simulated empty
   await expect(page.locator("#fuel-runtime-status")).toHaveText("Out of fuel (simulated)");
-  await expect(page.locator("#day-advance-button")).toHaveText("Out of fuel — close route early");
+  await expect(page.locator("#day-advance-button")).toHaveText("Out of fuel — choose closure option");
   await page.locator("#close-route-early-button").click();
   await beat(page, 1400);
   await expect(page.locator("#trip-watch-heading")).toHaveText("Trip Watch route closed early");

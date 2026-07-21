@@ -1,0 +1,1 @@
+At each arrival, Pitt checks predicted traffic, moving weather, and roadwork. Refueling decisions compare pump price with detour cost. Every signal comes from seeded demo data, not live sources.

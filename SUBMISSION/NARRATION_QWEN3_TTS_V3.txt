@@ -1,0 +1,21 @@
+A delivery plan can change. Driver authority should not.
+
+Traffic, weather, work zones, and gas prices move. Pitt keeps the trip visible.
+
+Navigation finds a route. Pitt adds the decision layer: time windows, reserve, detours, and a reviewable record.
+
+At each arrival, Pitt checks predicted traffic, moving weather, and roadwork. Refueling decisions compare pump price with detour cost. Every signal comes from seeded demo data, not live sources.
+
+Outcome one. The price rises. Pitt recalculates and waits. The driver chooses to refuel. The reserve recovers.
+
+Outcome two. At the price hike, the driver passes. The trip advances. Later, the price drops. Now the stop is worthwhile, so the driver chooses the refueling stop.
+
+Outcome three starts at fifty percent. A scheduled stop that morning raises the tank to eighty percent. When the first fuel offer appears, Pitt checks again, but another stop is not worth the detour. The driver passes. Later, a lower pump price appears. The potential saving is two dollars and seventy-three cents. The detour costs sixteen dollars and eighty cents. Pitt marks the second stop not cost-worthy. The driver passes again, and the planned route remains viable.
+
+Outcome four also starts at fifty percent, but has no morning fill. The driver passes the first offer, then the second. After completing the next delivery, the tank reaches zero percent. Pitt blocks unsafe continuation, then offers the driver an early-closure option. The driver confirms the closure. Any unserved stops remain recorded as undelivered.
+
+Behind the scenes, Codex and GPT five point six shaped the rules, added the missing economic branch, and tested all four outcomes. Codex also provided encouragement and moral support when the demo fought back. It may look like a game, but route safety is not one. Pitt offers options. The driver decides.
+
+Pitt produces a reviewable report and a local machine handoff. It contacts no carrier and controls no vehicle without an approved next step.
+
+And yes. Pitt knows Swindon's magic roundabout. It still gets human review... and possibly a wizard.

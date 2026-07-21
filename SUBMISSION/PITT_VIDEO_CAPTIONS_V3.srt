@@ -1,0 +1,43 @@
+1
+00:00:00,300 --> 00:00:05,684
+A delivery plan can change. Driver authority should not.
+
+2
+00:00:06,000 --> 00:00:12,000
+Traffic, weather, work zones, and gas prices move. PITT keeps the trip visible.
+
+3
+00:00:12,400 --> 00:00:21,707
+Navigation finds a route. PITT adds the decision layer: time windows, reserve, detours, and a reviewable record.
+
+4
+00:00:22,100 --> 00:00:38,869
+At each arrival, PITT checks predicted traffic, moving weather, and roadwork. Refueling decisions compare pump price with detour cost. Every signal comes from seeded demo data, not live sources.
+
+5
+00:00:39,200 --> 00:00:50,046
+Outcome one. The price rises. PITT recalculates and waits. The driver chooses to refuel. The reserve recovers.
+
+6
+00:00:51,000 --> 00:01:05,615
+Outcome two. At the price hike, the driver passes. The trip advances. Later, the price drops. Now the stop is worthwhile, so the driver chooses the refueling stop.
+
+7
+00:01:07,000 --> 00:01:43,769
+Outcome three starts at 50%. A scheduled stop that morning raises the tank to 80%. When the first fuel offer appears, PITT checks again, but another stop is not worth the detour. The driver passes. Later, a lower pump price appears. The potential saving is $2.73. The detour costs $16.80. PITT marks the second stop not cost-worthy. The driver passes again, and the planned route remains viable.
+
+8
+00:01:44,100 --> 00:02:12,177
+Outcome four also starts at 50%, but has no morning fill. The driver passes the first offer, then the second. After completing the next delivery, the tank reaches 0%. PITT blocks unsafe continuation, then offers the driver an early-closure option. The driver confirms the closure. Any unserved stops remain recorded as undelivered.
+
+9
+00:02:12,600 --> 00:02:38,138
+Behind the scenes, Codex and GPT-5.6 shaped the rules, added the missing economic branch, and tested all four outcomes. Codex also provided encouragement and moral support when the demo fought back. It may look like a game, but route safety is not one. PITT offers options. The driver decides.
+
+10
+00:02:38,500 --> 00:02:48,577
+PITT produces a reviewable report and a local machine handoff. It contacts no carrier and controls no vehicle without an approved next step.
+
+11
+00:02:48,900 --> 00:02:58,438
+And yes. PITT knows Swindon's magic roundabout. It still gets human review... and possibly a wizard.

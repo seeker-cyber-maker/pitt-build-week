@@ -13,6 +13,7 @@ recordings/
 SUBMISSION/audio/pitt-narration-qwen3-first-pass.wav
 SUBMISSION/audio/cues/*.wav
 SUBMISSION/audio/v2/*.wav
+SUBMISSION/audio/v3/*.wav
 *.log
 __pycache__/
 *.py[cod]

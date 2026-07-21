@@ -13,8 +13,8 @@ Target runtime: **2:48**. The first two cards total **13 seconds**. Record fresh
 | 0:47–1:01 | Fuel stop and price tradeoff | “Fuel is evaluated as pump price plus detour cost. The cheapest litre is not automatically the cheapest decision.” |
 | 1:01–1:17 | Run 1: price hike, refuel | “Outcome one: the price rises. PITT recalculates, shows the impact, and the driver chooses the revised stop.” |
 | 1:17–1:33 | Run 2: pass first, price drops, refuel | “Outcome two: the driver passes the first opportunity. A later price drop makes refuelling worthwhile.” |
-| 1:33–1:49 | Run 3: morning-filled, later cheap gas rejected | “Outcome three: the tank was filled in the morning. Cheap fuel appears later, but its savings do not justify another detour. PITT says so plainly.” |
-| 1:49–2:05 | Run 4: pass twice, fuel reaches zero, close early | “Outcome four: the driver passes twice. The simulation reaches zero fuel, blocks continuation, and closes the route early with undelivered stops recorded.” |
+| 1:09–1:43 | Run 3: morning-filled, both stops rejected | “Outcome three: both offers fail the economic check. The driver passes twice, but the reserve remains viable and the route continues.” |
+| 1:43–2:03 | Run 4: pass twice, fuel reaches zero, closure offered | “Outcome four: the driver passes twice. Fuel reaches zero, so PITT blocks unsafe continuation and offers to close early. The driver confirms; undelivered stops remain recorded.” |
 | 2:05–2:29 | Codex side-browser footage: prompt, product interaction, test output | “I built and tested PITT with Codex and GPT-5.6 as a hands-on engineering partner: shaping the decision rules, finding the missing economic outcome, exercising all four branches in the browser, and keeping every automated action behind driver review.” |
 | 2:29–2:40 | Report draft and machine handoff | “The result is a reviewable report and a local machine handoff. Nothing contacts a carrier, changes a route, or controls a vehicle without an approved next step.” |
 | 2:40–2:48 | `video-cards.html?card=outro` | “And yes—PITT is aware of magic roundabouts. Swindon still gets human review… and possibly a wizard.” |

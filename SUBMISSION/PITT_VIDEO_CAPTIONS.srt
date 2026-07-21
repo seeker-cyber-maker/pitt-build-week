@@ -73,8 +73,8 @@ Fuel reaches zero.
 
 16
 00:01:56,000 --> 00:02:02,421
-PITT blocks progress, and the driver closes the route early.
-Remaining stops stay recorded as undelivered.
+PITT blocks unsafe continuation and offers to close the route early.
+The driver confirms; remaining stops stay recorded as undelivered.
 
 17
 00:02:07,000 --> 00:02:17,000

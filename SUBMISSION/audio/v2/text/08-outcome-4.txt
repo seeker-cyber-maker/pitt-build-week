@@ -1,1 +1,1 @@
-Outcome four. The driver passes the first offer, then passes the second. After the next leg, fuel reaches zero. PITT blocks progress. The driver closes the route early, and the remaining stops stay undelivered.
+Outcome four. The driver passes the first offer, then the second. After the next leg, fuel reaches zero. PITT blocks unsafe continuation and offers to close the route early. The driver confirms. The remaining stops stay recorded as undelivered.

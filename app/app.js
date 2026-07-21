@@ -157,7 +157,7 @@ function renderFuelRuntime() {
     : fuel.needsFuelDecision
       ? `Fuel is ${fuel.currentFuelPercent.toFixed(1)}%. The next direct leg would cross the ${fuel.reserveFloorPercent}% reserve floor.`
       : fuel.outOfFuel
-        ? "The simulated vehicle cannot continue. Close the route early and review the undelivered stops."
+        ? "The simulated vehicle cannot continue safely. PITT offers early closure for driver confirmation; review the undelivered stops before deciding."
         : `Current fuel reflects ${fuel.operations.length} completed simulated leg${fuel.operations.length === 1 ? "" : "s"}.`;
   status.textContent = fuelStatusLabels[fuel.status];
   status.className = `status ${fuel.status === "within_policy" ? "status-safe" : "status-urgent"}`;
@@ -292,7 +292,7 @@ function renderDayPlayback() {
 
   advanceButton.disabled = !nextItem || hasUnresolvedEvent || fuel.outOfFuel;
   advanceButton.textContent = fuel.outOfFuel
-    ? "Out of fuel — close route early"
+    ? "Out of fuel — choose closure option"
     : fuel.needsFuelDecision
       ? "Choose a fuel decision"
       : !nextItem

@@ -64,6 +64,12 @@ Validate a driver companion with a small fleet, identify which report fields sav
 - Python 3 standard library
 - GitHub Pages
 
+## Codex Project Session
+
+`019f8596-b0a4-7471-afc1-1b100df7f0e1`
+
+This is the local Codex project-thread session identifier recovered from the session metadata for the thread used to implement and validate the final four-outcome demo and submission build.
+
 ## Try It Out
 
 - Demo: https://seeker-cyber-maker.github.io/pitt-build-week/

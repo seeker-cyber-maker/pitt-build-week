@@ -68,6 +68,9 @@
 - [ ] **Devpost project page.**
   Submission is through `https://openai.devpost.com/`; deadline is July 21, 2026 at 5:00 PM PDT. Enter the project description, Work and Productivity track, public YouTube video, repository, and Codex `/feedback` session ID.
 
+- [x] **Codex project-thread session ID recovered.**
+  Local Codex session metadata identifies `019f8596-b0a4-7471-afc1-1b100df7f0e1` as the project thread used for the final four-outcome implementation and submission build. Confirm the Devpost field accepts this identifier when entering the submission.
+
 - [x] **Hosted demo URL is available.**
   GitHub Pages is public at `https://seeker-cyber-maker.github.io/pitt-build-week/`. Before submission, perform one clean-browser smoke check against the current release.
 
